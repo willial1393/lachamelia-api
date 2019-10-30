@@ -1,7 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var express = require("express");
-var products_1 = require("./models/products");
+var productRouter_1 = require("./routers/productRouter");
+var categoryRouter_1 = require("./routers/categoryRouter");
 var bodyParser = require('body-parser');
 var Model = require('objection').Model;
 var Knex = require('knex');
@@ -27,23 +28,8 @@ app.use(function (request, res, next) {
     res.header('Allow', 'GET, POST, OPTIONS, PUT, DELETE');
     next();
 });
-app.get('/product/', function (req, res) {
-    products_1.Products.query().then(function (value) { return res.status(200).send(value); })
-        .catch(function (reason) { return res.status(200).send(reason); });
-});
-app.post('/product/insert', function (request, res) {
-    console.log(request.body);
-    products_1.Products.query().insertAndFetch(request.body).then(function (value) { return res.status(200).send(value); })
-        .catch(function (reason) { return res.status(200).send(reason); });
-});
-app.post('/product/delete', function (req, res) {
-    products_1.Products.query().deleteById(req.body.id).then(function (value) { return res.status(200).send('{"status":"deleted"}'); })
-        .catch(function (reason) { return res.status(200).send(reason); });
-});
-app.put('/product/update', function (req, res) {
-    products_1.Products.query().updateAndFetchById(req.body.id, req.body).then(function (value) { return res.status(200).send(value); })
-        .catch(function (reason) { return res.status(200).send(reason); });
-});
+app.use('/product', productRouter_1.ProductRouter.get());
+app.use('/category', categoryRouter_1.CategoryRouter.get());
 app.listen(3000, function () {
     console.log('Example app listening on port 3000!');
 });

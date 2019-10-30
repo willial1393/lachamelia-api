@@ -14,6 +14,7 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 var objection_1 = require("objection");
+var products_1 = require("./products");
 var Categories = /** @class */ (function (_super) {
     __extends(Categories, _super);
     function Categories() {
@@ -22,6 +23,22 @@ var Categories = /** @class */ (function (_super) {
     Object.defineProperty(Categories, "tableName", {
         get: function () {
             return 'categories';
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Categories, "relationMappings", {
+        get: function () {
+            return {
+                products: {
+                    relation: objection_1.Model.HasManyRelation,
+                    modelClass: products_1.Products,
+                    join: {
+                        from: 'categories.id',
+                        to: 'products.categoryId'
+                    }
+                }
+            };
         },
         enumerable: true,
         configurable: true

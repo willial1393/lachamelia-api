@@ -1,5 +1,6 @@
 import express = require('express');
-import {Products} from "./models/products";
+import {ProductRouter} from "./routers/productRouter";
+import {CategoryRouter} from "./routers/categoryRouter";
 
 const bodyParser = require('body-parser');
 const {Model} = require('objection');
@@ -18,7 +19,7 @@ const knex = Knex({
 Model.knex(knex);
 const app = express();
 
-app.use(bodyParser.json())
+app.use(bodyParser.json());
 app.use((request, res, next) => {
     res.header('Content-Type', 'application/json');
     res.header('Access-Control-Allow-Origin', '*');
@@ -27,25 +28,8 @@ app.use((request, res, next) => {
     res.header('Allow', 'GET, POST, OPTIONS, PUT, DELETE');
     next();
 });
-
-app.get('/product/', function (req, res) {
-    Products.query().then(value => res.status(200).send(value))
-        .catch(reason => res.status(200).send(reason))
-});
-app.post('/product/insert', function (request, res) {
-    console.log(request.body);
-    Products.query().insertAndFetch(request.body).then(value => res.status(200).send(value))
-        .catch(reason => res.status(200).send(reason))
-});
-app.post('/product/delete', function (req, res) {
-    Products.query().deleteById(req.body.id).then(value => res.status(200).send('{"status":"deleted"}'))
-        .catch(reason => res.status(200).send(reason))
-});
-app.put('/product/update', function (req, res) {
-    Products.query().updateAndFetchById(req.body.id, req.body).then(value => res.status(200).send(value))
-        .catch(reason => res.status(200).send(reason))
-});
-
+app.use('/product', ProductRouter.get());
+app.use('/category', CategoryRouter.get());
 app.listen(3000, function () {
     console.log('Example app listening on port 3000!');
 });
