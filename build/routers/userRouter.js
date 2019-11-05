@@ -9,7 +9,21 @@ var UserRouter = /** @class */ (function () {
     UserRouter.get = function () {
         router.get('/', function (req, res) {
             users_1.Users.query()
-                .eager('[employees, admins]')
+                .eager('[employees]')
+                .then(function (value) { return res.status(200).send(value); })
+                .catch(function (reason) { return res.status(200).send(reason); });
+        });
+        router.get('/:id', function (req, res) {
+            users_1.Users.query()
+                .findById(req.params.id)
+                .eager('[employees]')
+                .then(function (value) { return res.status(200).send(value); })
+                .catch(function (reason) { return res.status(200).send(reason); });
+        });
+        router.get('/role/:role', function (req, res) {
+            users_1.Users.query()
+                .where('role', req.params.role)
+                .eager('[employees]')
                 .then(function (value) { return res.status(200).send(value); })
                 .catch(function (reason) { return res.status(200).send(reason); });
         });

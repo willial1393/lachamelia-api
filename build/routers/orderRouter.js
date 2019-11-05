@@ -9,7 +9,14 @@ var OrderRouter = /** @class */ (function () {
     OrderRouter.get = function () {
         router.get('/', function (req, res) {
             orders_1.Orders.query()
-                .eager('[tables]')
+                .eager('[tables, employees]')
+                .then(function (value) { return res.status(200).send(value); })
+                .catch(function (reason) { return res.status(200).send(reason); });
+        });
+        router.get('/:id', function (req, res) {
+            orders_1.Orders.query()
+                .findById(req.params.id)
+                .eager('[tables, employees]')
                 .then(function (value) { return res.status(200).send(value); })
                 .catch(function (reason) { return res.status(200).send(reason); });
         });

@@ -13,6 +13,34 @@ var EmployeeRouter = /** @class */ (function () {
                 .then(function (value) { return res.status(200).send(value); })
                 .catch(function (reason) { return res.status(200).send(reason); });
         });
+        router.get('/:id', function (req, res) {
+            employees_1.Employees.query()
+                .findById(req.params.id)
+                .eager('[users]')
+                .then(function (value) { return res.status(200).send(value); })
+                .catch(function (reason) { return res.status(200).send(reason); });
+        });
+        router.get('/name/:name', function (req, res) {
+            employees_1.Employees.query()
+                .where('name', req.params.name)
+                .eager('[users]')
+                .then(function (value) { return res.status(200).send(value); })
+                .catch(function (reason) { return res.status(200).send(reason); });
+        });
+        router.get('/email/:email', function (req, res) {
+            employees_1.Employees.query()
+                .where('email', req.params.email)
+                .eager('[users]')
+                .then(function (value) { return res.status(200).send(value); })
+                .catch(function (reason) { return res.status(200).send(reason); });
+        });
+        router.get('/idUsers/:users_idUsers', function (req, res) {
+            employees_1.Employees.query()
+                .where('users_idUsers', req.params.users_idUsers)
+                .eager('[users]')
+                .then(function (value) { return res.status(200).send(value); })
+                .catch(function (reason) { return res.status(200).send(reason); });
+        });
         router.post('/insert', function (req, res) {
             employees_1.Employees.query().insertAndFetch(req.body).then(function (value) { return res.status(200).send(value); })
                 .catch(function (reason) { return res.status(200).send(reason); });

@@ -13,6 +13,27 @@ var TableRouter = /** @class */ (function () {
                 .then(function (value) { return res.status(200).send(value); })
                 .catch(function (reason) { return res.status(200).send(reason); });
         });
+        router.get('/:id', function (req, res) {
+            tables_1.Tables.query()
+                .findById(req.params.id)
+                .eager('[orders]')
+                .then(function (value) { return res.status(200).send(value); })
+                .catch(function (reason) { return res.status(200).send(reason); });
+        });
+        router.get('/name/:name', function (req, res) {
+            tables_1.Tables.query()
+                .where('name', req.params.name)
+                .eager('[orders]')
+                .then(function (value) { return res.status(200).send(value); })
+                .catch(function (reason) { return res.status(200).send(reason); });
+        });
+        router.get('/status/:status', function (req, res) {
+            tables_1.Tables.query()
+                .where('status', req.params.status)
+                .eager('[orders]')
+                .then(function (value) { return res.status(200).send(value); })
+                .catch(function (reason) { return res.status(200).send(reason); });
+        });
         router.post('/insert', function (req, res) {
             tables_1.Tables.query().insertAndFetch(req.body).then(function (value) { return res.status(200).send(value); })
                 .catch(function (reason) { return res.status(200).send(reason); });

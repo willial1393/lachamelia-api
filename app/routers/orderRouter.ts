@@ -7,7 +7,14 @@ export class OrderRouter {
     static get() {
         router.get('/', function (req, res) {
             Orders.query()
-                .eager('[tables]')
+                .eager('[tables, employees]')
+                .then(value => res.status(200).send(value))
+                .catch(reason => res.status(200).send(reason));
+        });
+        router.get('/:id', function (req, res) {
+            Orders.query()
+                .findById(req.params.id)
+                .eager('[tables, employees]')
                 .then(value => res.status(200).send(value))
                 .catch(reason => res.status(200).send(reason));
         });
