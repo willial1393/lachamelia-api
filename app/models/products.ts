@@ -22,7 +22,7 @@ export class Products extends Model {
                 modelClass: DetailsOrder,
                 join: {
                     from: 'products.id',
-                    to: 'detailsOrders.productId'
+                    to: 'detailsOrder.productId'
                 }
             },
         };

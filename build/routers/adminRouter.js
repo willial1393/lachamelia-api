@@ -13,6 +13,13 @@ var AdminRouter = /** @class */ (function () {
                 .then(function (value) { return res.status(200).send(value); })
                 .catch(function (reason) { return res.status(200).send(reason); });
         });
+        router.get('/:id', function (req, res) {
+            Admins_1.Admins.query()
+                .findById(req.params.id)
+                .eager('[users]')
+                .then(function (value) { return res.status(200).send(value); })
+                .catch(function (reason) { return res.status(200).send(reason); });
+        });
         router.post('/insert', function (req, res) {
             Admins_1.Admins.query().insertAndFetch(req.body).then(function (value) { return res.status(200).send(value); })
                 .catch(function (reason) { return res.status(200).send(reason); });

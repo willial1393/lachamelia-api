@@ -14,14 +14,14 @@ export class EmployeeRouter {
         router.get('/:id', function (req, res) {
             Employees.query()
                 .findById(req.params.id)
-                .eager('[users]')
+                .eager('[orders]')
                 .then(value => res.status(200).send(value))
                 .catch(reason => res.status(200).send(reason));
         });
         router.get('/name/:name', function (req, res) {
             Employees.query()
                 .where('name', req.params.name)
-                .eager('[users]')
+                .eager('[orders]')
                 .then(value => res.status(200).send(value))
                 .catch(reason => res.status(200).send(reason));
         });

@@ -16,14 +16,14 @@ var EmployeeRouter = /** @class */ (function () {
         router.get('/:id', function (req, res) {
             employees_1.Employees.query()
                 .findById(req.params.id)
-                .eager('[users]')
+                .eager('[orders]')
                 .then(function (value) { return res.status(200).send(value); })
                 .catch(function (reason) { return res.status(200).send(reason); });
         });
         router.get('/name/:name', function (req, res) {
             employees_1.Employees.query()
                 .where('name', req.params.name)
-                .eager('[users]')
+                .eager('[orders]')
                 .then(function (value) { return res.status(200).send(value); })
                 .catch(function (reason) { return res.status(200).send(reason); });
         });

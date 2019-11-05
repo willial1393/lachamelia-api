@@ -7,7 +7,7 @@ export class ProductRouter {
     static get() {
         router.get('/', function (req, res) {
             Products.query()
-                .eager('[categories]')
+                .eager('[categories, detailsOrder]')
                 .then(value => res.status(200).send(value))
                 .catch(reason => res.status(200).send(reason));
         });

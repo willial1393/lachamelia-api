@@ -53,7 +53,7 @@ var Orders = /** @class */ (function (_super) {
                     modelClass: detailsOrder_1.DetailsOrder,
                     join: {
                         from: 'orders.id',
-                        to: 'detailsOrders.orderId'
+                        to: 'detailsOrder.orderId'
                     }
                 }
             };

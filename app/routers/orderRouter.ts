@@ -14,10 +14,20 @@ export class OrderRouter {
         router.get('/:id', function (req, res) {
             Orders.query()
                 .findById(req.params.id)
-                .eager('[tables, employees]')
+                .eager('[tables, employees, detailsOrder]')
                 .then(value => res.status(200).send(value))
                 .catch(reason => res.status(200).send(reason));
         });
+        router.get('/name/:name', function (req, res) {
+            Orders.query()
+                .eager('[employees]')
+                .modifyEager('employees', builder => {
+                    builder.where('name', '=', req.params.name);
+                })
+                .then(value => res.status(200).send(value))
+                .catch(reason => res.status(200).send(reason));
+        });
+
         router.post('/insert', function (req, res) {
             Orders.query().insertAndFetch(req.body).then(value => res.status(200).send(value))
                 .catch(reason => res.status(200).send(reason));

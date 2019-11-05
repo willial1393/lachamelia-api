@@ -44,7 +44,7 @@ var Products = /** @class */ (function (_super) {
                     modelClass: detailsOrder_1.DetailsOrder,
                     join: {
                         from: 'products.id',
-                        to: 'detailsOrders.productId'
+                        to: 'detailsOrder.productId'
                     }
                 },
             };

@@ -9,7 +9,7 @@ var ProductRouter = /** @class */ (function () {
     ProductRouter.get = function () {
         router.get('/', function (req, res) {
             products_1.Products.query()
-                .eager('[categories]')
+                .eager('[categories, detailsOrder]')
                 .then(function (value) { return res.status(200).send(value); })
                 .catch(function (reason) { return res.status(200).send(reason); });
         });

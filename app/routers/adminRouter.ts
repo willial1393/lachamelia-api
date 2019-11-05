@@ -11,6 +11,13 @@ export class AdminRouter {
                 .then(value => res.status(200).send(value))
                 .catch(reason => res.status(200).send(reason));
         });
+        router.get('/:id', function (req, res) {
+            Admins.query()
+                .findById(req.params.id)
+                .eager('[users]')
+                .then(value => res.status(200).send(value))
+                .catch(reason => res.status(200).send(reason));
+        });
         router.post('/insert', function (req, res) {
             Admins.query().insertAndFetch(req.body).then(value => res.status(200).send(value))
                 .catch(reason => res.status(200).send(reason));

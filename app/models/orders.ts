@@ -1,6 +1,5 @@
 import {Model} from "objection";
 import {Tables} from "./tables";
-import {Products} from "./products";
 import {Employees} from "./employees";
 import {DetailsOrder} from "./detailsOrder";
 
@@ -31,8 +30,8 @@ export class Orders extends Model {
             relation: Model.HasManyRelation,
                 modelClass: DetailsOrder,
                 join: {
-                from: 'orders.id',
-                    to: 'detailsOrders.orderId'
+                    from: 'orders.id',
+                    to: 'detailsOrder.orderId'
             }
         }
         };
