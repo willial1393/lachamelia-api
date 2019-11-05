@@ -14,45 +14,45 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 var objection_1 = require("objection");
-var categories_1 = require("./categories");
-var detailsOrder_1 = require("./detailsOrder");
-var Products = /** @class */ (function (_super) {
-    __extends(Products, _super);
-    function Products() {
+var employees_1 = require("./employees");
+var admins_1 = require("./admins");
+var Users = /** @class */ (function (_super) {
+    __extends(Users, _super);
+    function Users() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
-    Object.defineProperty(Products, "tableName", {
+    Object.defineProperty(Users, "tableName", {
         get: function () {
-            return 'products';
+            return 'users';
         },
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(Products, "relationMappings", {
+    Object.defineProperty(Users, "relationMappings", {
         get: function () {
             return {
-                categories: {
+                employees: {
                     relation: objection_1.Model.HasOneRelation,
-                    modelClass: categories_1.Categories,
+                    modelClass: employees_1.Employees,
                     join: {
-                        from: 'products.categoryId',
-                        to: 'categories.id'
+                        from: 'users.id',
+                        to: 'employees.users_idUsers'
                     }
                 },
-                detailsOrder: {
-                    relation: objection_1.Model.HasManyRelation,
-                    modelClass: detailsOrder_1.DetailsOrder,
+                admins: {
+                    relation: objection_1.Model.HasOneRelation,
+                    modelClass: admins_1.Admins,
                     join: {
-                        from: 'products.id',
-                        to: 'detailsOrders.productId'
+                        from: 'users.id',
+                        to: 'admins.users_idUsers'
                     }
-                },
+                }
             };
         },
         enumerable: true,
         configurable: true
     });
-    return Products;
+    return Users;
 }(objection_1.Model));
-exports.Products = Products;
-//# sourceMappingURL=products.js.map
+exports.Users = Users;
+//# sourceMappingURL=users.js.map

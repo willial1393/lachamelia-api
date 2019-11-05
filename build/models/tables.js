@@ -14,45 +14,36 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 var objection_1 = require("objection");
-var categories_1 = require("./categories");
-var detailsOrder_1 = require("./detailsOrder");
-var Products = /** @class */ (function (_super) {
-    __extends(Products, _super);
-    function Products() {
+var orders_1 = require("./orders");
+var Tables = /** @class */ (function (_super) {
+    __extends(Tables, _super);
+    function Tables() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
-    Object.defineProperty(Products, "tableName", {
+    Object.defineProperty(Tables, "tableName", {
         get: function () {
-            return 'products';
+            return 'tables';
         },
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(Products, "relationMappings", {
+    Object.defineProperty(Tables, "relationMappings", {
         get: function () {
             return {
-                categories: {
-                    relation: objection_1.Model.HasOneRelation,
-                    modelClass: categories_1.Categories,
-                    join: {
-                        from: 'products.categoryId',
-                        to: 'categories.id'
-                    }
-                },
-                detailsOrder: {
+                orders: {
                     relation: objection_1.Model.HasManyRelation,
-                    modelClass: detailsOrder_1.DetailsOrder,
+                    modelClass: orders_1.Orders,
                     join: {
-                        from: 'products.id',
-                        to: 'detailsOrders.productId'
+                        from: 'tables.id',
+                        to: 'orders.tableId'
                     }
-                },
+                }
             };
         },
         enumerable: true,
         configurable: true
     });
-    return Products;
+    return Tables;
 }(objection_1.Model));
-exports.Products = Products;
-//# sourceMappingURL=products.js.map
+exports.Tables = Tables;
+//# sourceMappingURL=tables.js.map

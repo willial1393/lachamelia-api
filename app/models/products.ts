@@ -1,5 +1,6 @@
 import {Model} from "objection";
 import {Categories} from "./categories";
+import {DetailsOrder} from "./detailsOrder";
 
 export class Products extends Model {
     static get tableName() {
@@ -15,7 +16,15 @@ export class Products extends Model {
                     from: 'products.categoryId',
                     to: 'categories.id'
                 }
-            }
+            },
+            detailsOrder: {
+                relation: Model.HasManyRelation,
+                modelClass: DetailsOrder,
+                join: {
+                    from: 'products.id',
+                    to: 'detailsOrders.productId'
+                }
+            },
         };
     }
 }

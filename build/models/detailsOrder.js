@@ -14,45 +14,45 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 var objection_1 = require("objection");
-var categories_1 = require("./categories");
-var detailsOrder_1 = require("./detailsOrder");
-var Products = /** @class */ (function (_super) {
-    __extends(Products, _super);
-    function Products() {
+var products_1 = require("./products");
+var orders_1 = require("./orders");
+var DetailsOrder = /** @class */ (function (_super) {
+    __extends(DetailsOrder, _super);
+    function DetailsOrder() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
-    Object.defineProperty(Products, "tableName", {
+    Object.defineProperty(DetailsOrder, "tableName", {
         get: function () {
-            return 'products';
+            return 'detailsOrder';
         },
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(Products, "relationMappings", {
+    Object.defineProperty(DetailsOrder, "relationMappings", {
         get: function () {
             return {
-                categories: {
+                products: {
                     relation: objection_1.Model.HasOneRelation,
-                    modelClass: categories_1.Categories,
+                    modelClass: products_1.Products,
                     join: {
-                        from: 'products.categoryId',
-                        to: 'categories.id'
+                        from: 'detailsOrder.productId',
+                        to: 'products.id'
                     }
                 },
-                detailsOrder: {
-                    relation: objection_1.Model.HasManyRelation,
-                    modelClass: detailsOrder_1.DetailsOrder,
+                orders: {
+                    relation: objection_1.Model.HasOneRelation,
+                    modelClass: orders_1.Orders,
                     join: {
-                        from: 'products.id',
-                        to: 'detailsOrders.productId'
+                        from: 'detailsOrder.orderId',
+                        to: 'orders.id'
                     }
-                },
+                }
             };
         },
         enumerable: true,
         configurable: true
     });
-    return Products;
+    return DetailsOrder;
 }(objection_1.Model));
-exports.Products = Products;
-//# sourceMappingURL=products.js.map
+exports.DetailsOrder = DetailsOrder;
+//# sourceMappingURL=detailsOrder.js.map

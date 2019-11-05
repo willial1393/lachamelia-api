@@ -14,45 +14,36 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 var objection_1 = require("objection");
-var categories_1 = require("./categories");
-var detailsOrder_1 = require("./detailsOrder");
-var Products = /** @class */ (function (_super) {
-    __extends(Products, _super);
-    function Products() {
+var users_1 = require("./users");
+var Employees = /** @class */ (function (_super) {
+    __extends(Employees, _super);
+    function Employees() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
-    Object.defineProperty(Products, "tableName", {
+    Object.defineProperty(Employees, "tableName", {
         get: function () {
-            return 'products';
+            return 'employees';
         },
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(Products, "relationMappings", {
+    Object.defineProperty(Employees, "relationMappings", {
         get: function () {
             return {
-                categories: {
+                users: {
                     relation: objection_1.Model.HasOneRelation,
-                    modelClass: categories_1.Categories,
+                    modelClass: users_1.Users,
                     join: {
-                        from: 'products.categoryId',
-                        to: 'categories.id'
+                        from: 'employees.users_idUsers',
+                        to: 'users.id'
                     }
-                },
-                detailsOrder: {
-                    relation: objection_1.Model.HasManyRelation,
-                    modelClass: detailsOrder_1.DetailsOrder,
-                    join: {
-                        from: 'products.id',
-                        to: 'detailsOrders.productId'
-                    }
-                },
+                }
             };
         },
         enumerable: true,
         configurable: true
     });
-    return Products;
+    return Employees;
 }(objection_1.Model));
-exports.Products = Products;
-//# sourceMappingURL=products.js.map
+exports.Employees = Employees;
+//# sourceMappingURL=employees.js.map
