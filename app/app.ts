@@ -11,7 +11,6 @@ const knex = Knex({
     connection: {
         host: 'localhost',
         user: 'root',
-        password: 'root',
         port: '3306',
         database: 'lachamelia'
     }
