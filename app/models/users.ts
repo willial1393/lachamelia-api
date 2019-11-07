@@ -1,6 +1,6 @@
 import {Model} from "objection";
 import {Employees} from "./employees";
-import {Admins} from "./admins";
+import {Clients} from "./clients";
 
 export class Users extends Model {
     static get tableName() {
@@ -14,15 +14,15 @@ export class Users extends Model {
                 modelClass: Employees,
                 join: {
                     from: 'users.id',
-                    to: 'employees.users_idUsers'
+                    to: 'employees.userId'
                 }
             },
-            admins: {
+            clients: {
                 relation: Model.HasOneRelation,
-                modelClass: Admins,
+                modelClass: Clients,
                 join: {
                     from: 'users.id',
-                    to: 'admins.users_idUsers'
+                    to: 'clients.userId'
                 }
             }
         };

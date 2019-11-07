@@ -6,10 +6,8 @@ var categoryRouter_1 = require("./routers/categoryRouter");
 var userRouter_1 = require("./routers/userRouter");
 var employeeRouter_1 = require("./routers/employeeRouter");
 var detailOrderRouter_1 = require("./routers/detailOrderRouter");
-var adminRouter_1 = require("./routers/adminRouter");
 var tableRouter_1 = require("./routers/tableRouter");
 var orderRouter_1 = require("./routers/orderRouter");
-var loginRouter_1 = require("./routers/loginRouter");
 var bodyParser = require('body-parser');
 var Model = require('objection').Model;
 var Knex = require('knex');
@@ -20,6 +18,7 @@ var knex = Knex({
         host: 'localhost',
         user: 'root',
         port: '3306',
+        password: 'root',
         database: 'lachamelia'
     }
 });
@@ -41,9 +40,7 @@ app.use('/product', productRouter_1.ProductRouter.get());
 app.use('/category', categoryRouter_1.CategoryRouter.get());
 app.use('/user', userRouter_1.UserRouter.get());
 app.use('/employee', employeeRouter_1.EmployeeRouter.get());
-app.use('/admin', adminRouter_1.AdminRouter.get());
-app.use('/login', loginRouter_1.LoginRouter.get());
 app.listen(3000, function () {
-    console.log('Example app listening on port 3000!');
+    console.log('http://localhost:3000/');
 });
 //# sourceMappingURL=app.js.map
