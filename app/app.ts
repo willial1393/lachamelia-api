@@ -7,6 +7,7 @@ import {DetailOrderRouter} from "./routers/detailOrderRouter";
 import {AdminRouter} from "./routers/adminRouter";
 import {TableRouter} from "./routers/tableRouter";
 import {OrderRouter} from "./routers/orderRouter";
+import {LoginRouter} from "./routers/loginRouter";
 
 const bodyParser = require('body-parser');
 const {Model} = require('objection');
@@ -41,6 +42,7 @@ app.use('/category', CategoryRouter.get());
 app.use('/user', UserRouter.get());
 app.use('/employee', EmployeeRouter.get());
 app.use('/admin', AdminRouter.get());
+app.use('/login', LoginRouter.get());
 
 app.listen(3000, function () {
     console.log('Example app listening on port 3000!');
