@@ -1,8 +1,10 @@
 import {Users} from "../models/users";
-import {Tables} from "../models/tables";
 
 const express = require('express');
 const router = express.Router();
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
+const key = 's0/\/\P4$$w0rD';
 
 export class UserRouter {
     static get() {
@@ -26,8 +28,30 @@ export class UserRouter {
                 .then(value => res.status(200).send(value))
                 .catch(reason => res.status(200).send(reason));
         });
-        router.post('/insert', function (req, res) {
-            Users.query().insertAndFetch(req.body).then(value => res.status(200).send(value))
+        router.post('/register', function (req, res) {
+            bcrypt.genSalt(saltRounds, function (err, salt) {
+                bcrypt.hash(req.body.password, salt, function (err, hash) {
+                    req.body.password = hash;
+                    Users.query().insertAndFetch(req.body).then(value => res.status(200).send(value))
+                        .catch(reason => res.status(200).send(reason));
+                });
+            });
+        });
+        router.post('/login', function (req, res) {
+            Users.query()
+                .where('email', req.body.email)
+                .eager('[employees,clients]')
+                .first()
+                .then((value: any) => {
+                    bcrypt.compare(req.body.password, value.password).then(value1 => {
+                        if (value1) {
+                            delete value.password;
+                            res.status(200).send(value);
+                        } else {
+                            res.status(200).send('{"status":false}');
+                        }
+                    });
+                })
                 .catch(reason => res.status(200).send(reason));
         });
         router.post('/delete', function (req, res) {
