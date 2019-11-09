@@ -1,6 +1,5 @@
 import {Model} from "objection";
-import {Employees} from "./employees";
-import {Clients} from "./clients";
+import {Roles} from "./roles";
 
 export class Users extends Model {
     static get tableName() {
@@ -9,20 +8,12 @@ export class Users extends Model {
 
     static get relationMappings() {
         return {
-            employees: {
+            roles: {
                 relation: Model.HasOneRelation,
-                modelClass: Employees,
+                modelClass: Roles,
                 join: {
-                    from: 'users.id',
-                    to: 'employees.userId'
-                }
-            },
-            clients: {
-                relation: Model.HasOneRelation,
-                modelClass: Clients,
-                join: {
-                    from: 'users.id',
-                    to: 'clients.userId'
+                    from: 'users.rolId',
+                    to: 'roles.id'
                 }
             }
         };

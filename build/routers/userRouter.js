@@ -38,6 +38,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var users_1 = require("../models/users");
 var objection_1 = require("objection");
+var employees_1 = require("../models/employees");
 var express = require('express');
 var router = express.Router();
 var bcrypt = require('bcrypt');
@@ -73,56 +74,95 @@ var UserRouter = /** @class */ (function () {
                     return res.status(403).send(reason);
                 });
         });
+        // router.post('/register/employee', function (req, res) {
+        //     bcrypt.genSalt(saltRounds, function (err, salt) {
+        //         bcrypt.hash(req.body.password, salt, async function (err, hash) {
+        //             req.body.password = hash;
+        //             try {
+        //                 const trans = await transaction(Model.knex(), async (trx) => {
+        //                     return (await Users.query(trx)
+        //                         .insertGraphAndFetch(req.body));
+        //                 });
+        //                 res.status(200).send(trans);
+        //             } catch (err) {
+        //                 res.status(403).send(err);
+        //             }
+        //         });
+        //     });
+        // });
         router.post('/register/employee', function (req, res) {
-            bcrypt.genSalt(saltRounds, function (err, salt) {
-                bcrypt.hash(req.body.password, salt, function (err, hash) {
-                    return __awaiter(this, void 0, void 0, function () {
-                        var trans, err_1;
-                        var _this = this;
-                        return __generator(this, function (_a) {
-                            switch (_a.label) {
-                                case 0:
-                                    req.body.password = hash;
-                                    _a.label = 1;
-                                case 1:
-                                    _a.trys.push([1, 3, , 4]);
-                                    return [4 /*yield*/, transaction(objection_1.Model.knex(), function (trx) {
-                                        return __awaiter(_this, void 0, void 0, function () {
-                                            return __generator(this, function (_a) {
-                                                switch (_a.label) {
-                                                    case 0:
-                                                        return [4 /*yield*/, users_1.Users.query(trx)
-                                                            .insertGraphAndFetch(req.body)];
-                                                    case 1:
-                                                        return [2 /*return*/, (_a.sent())];
-                                                }
-                                            });
-                                        }); })];
-                                case 2:
-                                    trans = _a.sent();
-                                    res.status(200).send(trans);
-                                    return [3 /*break*/, 4];
-                                case 3:
-                                    err_1 = _a.sent();
-                                    res.status(403).send(err_1);
-                                    return [3 /*break*/, 4];
-                                case 4: return [2 /*return*/];
-                            }
-                        });
-                    });
+            return __awaiter(this, void 0, void 0, function () {
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            return [4 /*yield*/, bcrypt.genSalt(saltRounds, function (err, salt) {
+                                bcrypt.hash(req.body.users.password, salt, function (err, hash) {
+                                    return __awaiter(this, void 0, void 0, function () {
+                                        var trans, err_1;
+                                        var _this = this;
+                                        return __generator(this, function (_a) {
+                                            switch (_a.label) {
+                                                case 0:
+                                                    _a.trys.push([0, 2, , 3]);
+                                                    return [4 /*yield*/, transaction(objection_1.Model.knex(), function (trx) {
+                                                        return __awaiter(_this, void 0, void 0, function () {
+                                                            var user, employee;
+                                                            return __generator(this, function (_a) {
+                                                                switch (_a.label) {
+                                                                    case 0:
+                                                                        req.body.users.password = hash;
+                                                                        return [4 /*yield*/, users_1.Users.query(trx)
+                                                                            .insertAndFetch(req.body.users)];
+                                                                    case 1:
+                                                                        user = _a.sent();
+                                                                        delete req.body.users;
+                                                                        req.body.userId = user.id;
+                                                                        return [4 /*yield*/, employees_1.Employees.query(trx)
+                                                                            .insertAndFetch(req.body)];
+                                                                    case 2:
+                                                                        employee = _a.sent();
+                                                                        return [4 /*yield*/, employees_1.Employees.query(trx)
+                                                                            .findById(employee.id)
+                                                                            .eager('[users.roles]')];
+                                                                    case 3:
+                                                                        return [2 /*return*/, (_a.sent())];
+                                                                }
+                                                            });
+                                                        });
+                                                    })];
+                                                case 1:
+                                                    trans = _a.sent();
+                                                    res.status(200).send(trans);
+                                                    return [3 /*break*/, 3];
+                                                case 2:
+                                                    err_1 = _a.sent();
+                                                    res.status(403).send(err_1);
+                                                    return [3 /*break*/, 3];
+                                                case 3:
+                                                    return [2 /*return*/];
+                                            }
+                                        });
+                                    });
+                                });
+                            })];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
                 });
             });
         });
-        router.post('/login', function (req, res) {
+        router.post('/login/employee', function (req, res) {
             users_1.Users.query()
                 .where('email', req.body.email)
-                .eager('[employees,clients]')
                 .first()
                 .then(function (value) {
                 bcrypt.compare(req.body.password, value.password).then(function (value1) {
                     if (value1) {
-                        delete value.password;
-                        res.status(200).send(value);
+                        var employee = employees_1.Employees.query()
+                            .where('userId', value1.id)
+                            .eager('[users.roles]');
+                        res.status(200).send(employee);
                     }
                     else {
                         res.status(403).send('{"status":false}');

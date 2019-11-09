@@ -35,7 +35,7 @@ var Employees = /** @class */ (function (_super) {
                     relation: objection_1.Model.HasOneRelation,
                     modelClass: users_1.Users,
                     join: {
-                        from: 'employees.users_idUsers',
+                        from: 'employees.userId',
                         to: 'users.id'
                     }
                 },
@@ -44,7 +44,7 @@ var Employees = /** @class */ (function (_super) {
                     modelClass: orders_1.Orders,
                     join: {
                         from: 'employees.id',
-                        to: 'orders.employee_idPersons'
+                        to: 'orders.employeeId'
                     }
                 }
             };

@@ -6,6 +6,7 @@ import {EmployeeRouter} from "./routers/employeeRouter";
 import {DetailOrderRouter} from "./routers/detailOrderRouter";
 import {TableRouter} from "./routers/tableRouter";
 import {OrderRouter} from "./routers/orderRouter";
+import {RolRouter} from "./routers/rolRouter";
 
 const bodyParser = require('body-parser');
 const {Model} = require('objection');
@@ -14,10 +15,10 @@ const knex = Knex({
     client: 'mysql2',
     useNullAsDefault: true,
     connection: {
-        host: 'localhost',
+        host: '3.133.54.94',
         user: 'root',
-        port: '3306',
-        password: '',
+        port: '3307',
+        password: 'csH6jG8W5cvPWVT',
         database: 'lachamelia'
     }
 });
@@ -40,6 +41,7 @@ app.use('/product', ProductRouter.get());
 app.use('/category', CategoryRouter.get());
 app.use('/user', UserRouter.get());
 app.use('/employee', EmployeeRouter.get());
+app.use('/rol', RolRouter.get());
 
 app.listen(3000, function () {
     console.log('http://localhost:3000/');

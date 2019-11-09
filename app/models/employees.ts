@@ -13,7 +13,7 @@ export class Employees extends Model {
                 relation: Model.HasOneRelation,
                 modelClass: Users,
                 join: {
-                    from: 'employees.users_idUsers',
+                    from: 'employees.userId',
                     to: 'users.id'
                 }
             },
@@ -22,7 +22,7 @@ export class Employees extends Model {
                 modelClass: Orders,
                 join: {
                     from: 'employees.id',
-                    to: 'orders.employee_idPersons'
+                    to: 'orders.employeeId'
                 }
             }
         };

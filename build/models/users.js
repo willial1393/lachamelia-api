@@ -14,8 +14,7 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 var objection_1 = require("objection");
-var employees_1 = require("./employees");
-var clients_1 = require("./clients");
+var roles_1 = require("./roles");
 var Users = /** @class */ (function (_super) {
     __extends(Users, _super);
     function Users() {
@@ -31,20 +30,12 @@ var Users = /** @class */ (function (_super) {
     Object.defineProperty(Users, "relationMappings", {
         get: function () {
             return {
-                employees: {
+                roles: {
                     relation: objection_1.Model.HasOneRelation,
-                    modelClass: employees_1.Employees,
+                    modelClass: roles_1.Roles,
                     join: {
-                        from: 'users.id',
-                        to: 'employees.userId'
-                    }
-                },
-                clients: {
-                    relation: objection_1.Model.HasOneRelation,
-                    modelClass: clients_1.Clients,
-                    join: {
-                        from: 'users.id',
-                        to: 'clients.userId'
+                        from: 'users.rolId',
+                        to: 'roles.id'
                     }
                 }
             };
