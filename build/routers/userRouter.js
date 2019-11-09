@@ -52,27 +52,21 @@ var UserRouter = /** @class */ (function () {
             users_1.Users.query()
                 .eager('[employees]')
                 .then(function (value) { return res.status(200).send(value); })
-                .catch(function (reason) {
-                    return res.status(403).send(reason);
-                });
+                .catch(function (reason) { return res.status(403).send(reason); });
         });
         router.get('/:id', function (req, res) {
             users_1.Users.query()
                 .findById(req.params.id)
                 .eager('[employees]')
                 .then(function (value) { return res.status(200).send(value); })
-                .catch(function (reason) {
-                    return res.status(403).send(reason);
-                });
+                .catch(function (reason) { return res.status(403).send(reason); });
         });
         router.get('/role/:role', function (req, res) {
             users_1.Users.query()
                 .where('role', req.params.role)
                 .eager('[employees]')
                 .then(function (value) { return res.status(200).send(value); })
-                .catch(function (reason) {
-                    return res.status(403).send(reason);
-                });
+                .catch(function (reason) { return res.status(403).send(reason); });
         });
         // router.post('/register/employee', function (req, res) {
         //     bcrypt.genSalt(saltRounds, function (err, salt) {
@@ -94,8 +88,7 @@ var UserRouter = /** @class */ (function () {
             return __awaiter(this, void 0, void 0, function () {
                 return __generator(this, function (_a) {
                     switch (_a.label) {
-                        case 0:
-                            return [4 /*yield*/, bcrypt.genSalt(saltRounds, function (err, salt) {
+                        case 0: return [4 /*yield*/, bcrypt.genSalt(saltRounds, function (err, salt) {
                                 bcrypt.hash(req.body.users.password, salt, function (err, hash) {
                                     return __awaiter(this, void 0, void 0, function () {
                                         var trans, err_1;
@@ -104,32 +97,29 @@ var UserRouter = /** @class */ (function () {
                                             switch (_a.label) {
                                                 case 0:
                                                     _a.trys.push([0, 2, , 3]);
-                                                    return [4 /*yield*/, transaction(objection_1.Model.knex(), function (trx) {
-                                                        return __awaiter(_this, void 0, void 0, function () {
+                                                    return [4 /*yield*/, transaction(objection_1.Model.knex(), function (trx) { return __awaiter(_this, void 0, void 0, function () {
                                                             var user, employee;
                                                             return __generator(this, function (_a) {
                                                                 switch (_a.label) {
                                                                     case 0:
                                                                         req.body.users.password = hash;
                                                                         return [4 /*yield*/, users_1.Users.query(trx)
-                                                                            .insertAndFetch(req.body.users)];
+                                                                                .insertAndFetch(req.body.users)];
                                                                     case 1:
                                                                         user = _a.sent();
                                                                         delete req.body.users;
                                                                         req.body.userId = user.id;
                                                                         return [4 /*yield*/, employees_1.Employees.query(trx)
-                                                                            .insertAndFetch(req.body)];
+                                                                                .insertAndFetch(req.body)];
                                                                     case 2:
                                                                         employee = _a.sent();
                                                                         return [4 /*yield*/, employees_1.Employees.query(trx)
-                                                                            .findById(employee.id)
-                                                                            .eager('[users.roles]')];
-                                                                    case 3:
-                                                                        return [2 /*return*/, (_a.sent())];
+                                                                                .findById(employee.id)
+                                                                                .eager('[users.roles]')];
+                                                                    case 3: return [2 /*return*/, (_a.sent())];
                                                                 }
                                                             });
-                                                        });
-                                                    })];
+                                                        }); })];
                                                 case 1:
                                                     trans = _a.sent();
                                                     res.status(200).send(trans);
@@ -138,8 +128,7 @@ var UserRouter = /** @class */ (function () {
                                                     err_1 = _a.sent();
                                                     res.status(403).send(err_1);
                                                     return [3 /*break*/, 3];
-                                                case 3:
-                                                    return [2 /*return*/];
+                                                case 3: return [2 /*return*/];
                                             }
                                         });
                                     });
@@ -169,21 +158,15 @@ var UserRouter = /** @class */ (function () {
                     }
                 });
             })
-                .catch(function (reason) {
-                    return res.status(403).send(reason);
-                });
+                .catch(function (reason) { return res.status(403).send(reason); });
         });
         router.post('/delete', function (req, res) {
             users_1.Users.query().deleteById(req.body.id).then(function (value) { return res.status(200).send('{"status":"deleted"}'); })
-                .catch(function (reason) {
-                    return res.status(403).send(reason);
-                });
+                .catch(function (reason) { return res.status(403).send(reason); });
         });
         router.put('/update', function (req, res) {
             users_1.Users.query().updateAndFetchById(req.body.id, req.body).then(function (value) { return res.status(200).send(value); })
-                .catch(function (reason) {
-                    return res.status(403).send(reason);
-                });
+                .catch(function (reason) { return res.status(403).send(reason); });
         });
         return router;
     };
