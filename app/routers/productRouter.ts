@@ -7,7 +7,14 @@ export class ProductRouter {
     static get() {
         router.get('/', function (req, res) {
             Products.query()
-                .eager('[categories, detailsOrder]')
+                .eager('[categories]')
+                .then(value => res.status(200).send(value))
+                .catch(reason => res.status(200).send(reason));
+        });
+        router.get('/:id', function (req, res) {
+            Products.query()
+                .findById(req.params.id)
+                .eager('[categories]')
                 .then(value => res.status(200).send(value))
                 .catch(reason => res.status(200).send(reason));
         });

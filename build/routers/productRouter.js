@@ -9,7 +9,14 @@ var ProductRouter = /** @class */ (function () {
     ProductRouter.get = function () {
         router.get('/', function (req, res) {
             products_1.Products.query()
-                .eager('[categories, detailsOrder]')
+                .eager('[categories]')
+                .then(function (value) { return res.status(200).send(value); })
+                .catch(function (reason) { return res.status(200).send(reason); });
+        });
+        router.get('/:id', function (req, res) {
+            products_1.Products.query()
+                .findById(req.params.id)
+                .eager('[categories]')
                 .then(function (value) { return res.status(200).send(value); })
                 .catch(function (reason) { return res.status(200).send(reason); });
         });
