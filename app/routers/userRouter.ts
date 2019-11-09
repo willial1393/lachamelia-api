@@ -1,10 +1,11 @@
 import {Users} from "../models/users";
+import {Model} from "objection";
 
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
-const key = 's0/\/\P4$$w0rD';
+const {transaction} = require('objection');
 
 export class UserRouter {
     static get() {
@@ -12,48 +13,34 @@ export class UserRouter {
             Users.query()
                 .eager('[employees]')
                 .then(value => res.status(200).send(value))
-                .catch(reason => res.status(200).send(reason));
+                .catch(reason => res.status(403).send(reason));
         });
         router.get('/:id', function (req, res) {
             Users.query()
                 .findById(req.params.id)
                 .eager('[employees]')
                 .then(value => res.status(200).send(value))
-                .catch(reason => res.status(200).send(reason));
+                .catch(reason => res.status(403).send(reason));
         });
         router.get('/role/:role', function (req, res) {
             Users.query()
                 .where('role', req.params.role)
                 .eager('[employees]')
                 .then(value => res.status(200).send(value))
-                .catch(reason => res.status(200).send(reason));
+                .catch(reason => res.status(403).send(reason));
         });
-        router.post('/register', function (req, req1, res) {
+        router.post('/register/employee', function (req, res) {
             bcrypt.genSalt(saltRounds, function (err, salt) {
                 bcrypt.hash(req.body.password, salt, async function (err, hash) {
                     req.body.password = hash;
-
-                    const { transaction } = require('objection');
-
                     try {
-                        const scrappy = await transaction(req, req1, async (Person, Animal) => {
-                            // Person and Animal inside this function are bound to a newly
-                            // created transaction. The Person and Animal outside this function
-                            // are not! Even if you do `require('./models/Person')` inside this
-                            // function and start a query using the required `Person` it will
-                            // NOT take part in the transaction. Only the actual objects passed
-                            // to this function are bound to the transaction.
-
-                            await Person
-                                .query()
-                                .insert({firstName: 'Jennifer', lastName: 'Lawrence'});
-
-                            return Animal
-                                .query()
-                                .insert({name: 'Scrappy'});
+                        const trans = await transaction(Model.knex(), async (trx) => {
+                            return (await Users.query(trx)
+                                .insertGraphAndFetch(req.body));
                         });
+                        res.status(200).send(trans);
                     } catch (err) {
-                        console.log('Something went wrong. Neither Jennifer nor Scrappy were inserted');
+                        res.status(403).send(err);
                     }
                 });
             });
@@ -69,19 +56,19 @@ export class UserRouter {
                             delete value.password;
                             res.status(200).send(value);
                         } else {
-                            res.status(200).send('{"status":false}');
+                            res.status(403).send('{"status":false}');
                         }
                     });
                 })
-                .catch(reason => res.status(200).send(reason));
+                .catch(reason => res.status(403).send(reason));
         });
         router.post('/delete', function (req, res) {
             Users.query().deleteById(req.body.id).then(value => res.status(200).send('{"status":"deleted"}'))
-                .catch(reason => res.status(200).send(reason));
+                .catch(reason => res.status(403).send(reason));
         });
         router.put('/update', function (req, res) {
             Users.query().updateAndFetchById(req.body.id, req.body).then(value => res.status(200).send(value))
-                .catch(reason => res.status(200).send(reason));
+                .catch(reason => res.status(403).send(reason));
         });
         return router;
     }

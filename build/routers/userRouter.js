@@ -37,11 +37,12 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var users_1 = require("../models/users");
+var objection_1 = require("objection");
 var express = require('express');
 var router = express.Router();
 var bcrypt = require('bcrypt');
 var saltRounds = 10;
-var key = 's0/\/\P4$$w0rD';
+var transaction = require('objection').transaction;
 var UserRouter = /** @class */ (function () {
     function UserRouter() {
     }
@@ -50,69 +51,60 @@ var UserRouter = /** @class */ (function () {
             users_1.Users.query()
                 .eager('[employees]')
                 .then(function (value) { return res.status(200).send(value); })
-                .catch(function (reason) { return res.status(200).send(reason); });
+                .catch(function (reason) {
+                    return res.status(403).send(reason);
+                });
         });
         router.get('/:id', function (req, res) {
             users_1.Users.query()
                 .findById(req.params.id)
                 .eager('[employees]')
                 .then(function (value) { return res.status(200).send(value); })
-                .catch(function (reason) { return res.status(200).send(reason); });
+                .catch(function (reason) {
+                    return res.status(403).send(reason);
+                });
         });
         router.get('/role/:role', function (req, res) {
             users_1.Users.query()
                 .where('role', req.params.role)
                 .eager('[employees]')
                 .then(function (value) { return res.status(200).send(value); })
-                .catch(function (reason) { return res.status(200).send(reason); });
+                .catch(function (reason) {
+                    return res.status(403).send(reason);
+                });
         });
-        router.post('/register', function (req, req1, res) {
+        router.post('/register/employee', function (req, res) {
             bcrypt.genSalt(saltRounds, function (err, salt) {
                 bcrypt.hash(req.body.password, salt, function (err, hash) {
                     return __awaiter(this, void 0, void 0, function () {
-                        var transaction, scrappy, err_1;
+                        var trans, err_1;
                         var _this = this;
                         return __generator(this, function (_a) {
                             switch (_a.label) {
                                 case 0:
                                     req.body.password = hash;
-                                    transaction = require('objection').transaction;
                                     _a.label = 1;
                                 case 1:
                                     _a.trys.push([1, 3, , 4]);
-                                    return [4 /*yield*/, transaction(req, req1, function (Person, Animal) { return __awaiter(_this, void 0, void 0, function () {
+                                    return [4 /*yield*/, transaction(objection_1.Model.knex(), function (trx) {
+                                        return __awaiter(_this, void 0, void 0, function () {
                                             return __generator(this, function (_a) {
                                                 switch (_a.label) {
-                                                    case 0: 
-                                                    // Person and Animal inside this function are bound to a newly
-                                                    // created transaction. The Person and Animal outside this function
-                                                    // are not! Even if you do `require('./models/Person')` inside this
-                                                    // function and start a query using the required `Person` it will
-                                                    // NOT take part in the transaction. Only the actual objects passed
-                                                    // to this function are bound to the transaction.
-                                                    return [4 /*yield*/, Person
-                                                            .query()
-                                                            .insert({ firstName: 'Jennifer', lastName: 'Lawrence' })];
+                                                    case 0:
+                                                        return [4 /*yield*/, users_1.Users.query(trx)
+                                                            .insertGraphAndFetch(req.body)];
                                                     case 1:
-                                                        // Person and Animal inside this function are bound to a newly
-                                                        // created transaction. The Person and Animal outside this function
-                                                        // are not! Even if you do `require('./models/Person')` inside this
-                                                        // function and start a query using the required `Person` it will
-                                                        // NOT take part in the transaction. Only the actual objects passed
-                                                        // to this function are bound to the transaction.
-                                                        _a.sent();
-                                                        return [2 /*return*/, Animal
-                                                                .query()
-                                                                .insert({ name: 'Scrappy' })];
+                                                        return [2 /*return*/, (_a.sent())];
                                                 }
                                             });
                                         }); })];
                                 case 2:
-                                    scrappy = _a.sent();
+                                    trans = _a.sent();
+                                    res.status(200).send(trans);
                                     return [3 /*break*/, 4];
                                 case 3:
                                     err_1 = _a.sent();
-                                    console.log('Something went wrong. Neither Jennifer nor Scrappy were inserted');
+                                    res.status(403).send(err_1);
                                     return [3 /*break*/, 4];
                                 case 4: return [2 /*return*/];
                             }
@@ -133,19 +125,25 @@ var UserRouter = /** @class */ (function () {
                         res.status(200).send(value);
                     }
                     else {
-                        res.status(200).send('{"status":false}');
+                        res.status(403).send('{"status":false}');
                     }
                 });
             })
-                .catch(function (reason) { return res.status(200).send(reason); });
+                .catch(function (reason) {
+                    return res.status(403).send(reason);
+                });
         });
         router.post('/delete', function (req, res) {
             users_1.Users.query().deleteById(req.body.id).then(function (value) { return res.status(200).send('{"status":"deleted"}'); })
-                .catch(function (reason) { return res.status(200).send(reason); });
+                .catch(function (reason) {
+                    return res.status(403).send(reason);
+                });
         });
         router.put('/update', function (req, res) {
             users_1.Users.query().updateAndFetchById(req.body.id, req.body).then(function (value) { return res.status(200).send(value); })
-                .catch(function (reason) { return res.status(200).send(reason); });
+                .catch(function (reason) {
+                    return res.status(403).send(reason);
+                });
         });
         return router;
     };
