@@ -7,6 +7,11 @@ export class CategoryRouter {
     static get() {
         router.get('/', function (req, res) {
             Categories.query()
+                .then(value => res.status(200).send(value))
+                .catch(reason => res.status(200).send(reason));
+        });
+        router.get('/prod', function (req, res) {
+            Categories.query()
                 .eager('[products]')
                 .then(value => res.status(200).send(value))
                 .catch(reason => res.status(200).send(reason));

@@ -142,21 +142,22 @@ var UserRouter = /** @class */ (function () {
             });
         });
         router.post('/login/employee', function (req, res) {
+            var _this = this;
             users_1.Users.query()
                 .where('email', req.body.email)
                 .first()
                 .then(function (value) {
-                bcrypt.compare(req.body.password, value.password).then(function (value1) {
-                    if (value1) {
-                        var employee = employees_1.Employees.query()
-                            .where('userId', value1.id)
-                            .eager('[users.roles]');
-                        res.status(200).send(employee);
-                    }
-                    else {
-                        res.status(403).send('{"status":false}');
-                    }
-                });
+                res.status(200).send(value);
+                bcrypt.compare(req.body.password, value.password).then(function (value1) { return __awaiter(_this, void 0, void 0, function () {
+                    return __generator(this, function (_a) {
+                        if (value1) {
+                        }
+                        else {
+                            res.status(403).send('{"status":"error gravisimo que ni idea"}');
+                        }
+                        return [2 /*return*/];
+                    });
+                }); });
             })
                 .catch(function (reason) { return res.status(403).send(reason); });
         });

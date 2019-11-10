@@ -22,7 +22,7 @@ export class Orders extends Model {
                 relation: Model.HasOneRelation,
                 modelClass: Employees,
                 join: {
-                    from: 'orders.employee_idPersons',
+                    from: 'orders.employeeId',
                     to: 'employees.id'
                 }
             },

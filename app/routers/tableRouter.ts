@@ -1,4 +1,8 @@
 import {Tables} from "../models/tables";
+import {Model} from "objection";
+import {Orders} from "../models/orders";
+import {Employees} from "../models/employees";
+const {transaction} = require('objection');
 
 const express = require('express');
 const router = express.Router();
@@ -18,12 +22,20 @@ export class TableRouter {
                 .then(value => res.status(200).send(value))
                 .catch(reason => res.status(200).send(reason));
         });
-        router.get('/name/:name', function (req, res) {
-            Tables.query()
-                .where('name', req.params.name)
-                .eager('[orders]')
-                .then(value => res.status(200).send(value))
-                .catch(reason => res.status(200).send(reason));
+        //Metodo para revisar
+        router.post('/name/:name', async function (req, res) {
+            try {
+                const trans = await transaction(Model.knex(), async (trx) => {
+                    const table: any = await Tables.query(trx)
+                        .where('name', req.params.name);
+
+                    return (await Orders.query(trx)
+                        .where('tableId', table.body.id));
+                });
+                res.status(200).send(trans);
+            } catch (err) {
+                res.status(403).send(err);
+            }
         });
         router.get('/status/:status', function (req, res) {
             Tables.query()

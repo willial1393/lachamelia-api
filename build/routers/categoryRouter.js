@@ -9,6 +9,11 @@ var CategoryRouter = /** @class */ (function () {
     CategoryRouter.get = function () {
         router.get('/', function (req, res) {
             categories_1.Categories.query()
+                .then(function (value) { return res.status(200).send(value); })
+                .catch(function (reason) { return res.status(200).send(reason); });
+        });
+        router.get('/prod', function (req, res) {
+            categories_1.Categories.query()
                 .eager('[products]')
                 .then(function (value) { return res.status(200).send(value); })
                 .catch(function (reason) { return res.status(200).send(reason); });

@@ -1,4 +1,7 @@
 import {Orders} from "../models/orders";
+import {Model, transaction} from "objection";
+import {Users} from "../models/users";
+import {Employees} from "../models/employees";
 
 const express = require('express');
 const router = express.Router();
@@ -7,7 +10,7 @@ export class OrderRouter {
     static get() {
         router.get('/', function (req, res) {
             Orders.query()
-                .eager('[tables, employees]')
+                .eager('[tables, employees, detailsOrder]')
                 .then(value => res.status(200).send(value))
                 .catch(reason => res.status(200).send(reason));
         });
@@ -15,15 +18,6 @@ export class OrderRouter {
             Orders.query()
                 .findById(req.params.id)
                 .eager('[tables, employees, detailsOrder]')
-                .then(value => res.status(200).send(value))
-                .catch(reason => res.status(200).send(reason));
-        });
-        router.get('/name/:name', function (req, res) {
-            Orders.query()
-                .eager('[employees]')
-                .modifyEager('employees', builder => {
-                    builder.where('name', '=', req.params.name);
-                })
                 .then(value => res.status(200).send(value))
                 .catch(reason => res.status(200).send(reason));
         });

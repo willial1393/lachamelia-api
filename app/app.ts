@@ -15,10 +15,10 @@ const knex = Knex({
     client: 'mysql2',
     useNullAsDefault: true,
     connection: {
-        host: '3.133.54.94',
+        host: '127.0.0.1',
         user: 'root',
-        port: '3307',
-        password: 'csH6jG8W5cvPWVT',
+        port: '3306',
+        password: '',
         database: 'lachamelia'
     }
 });
