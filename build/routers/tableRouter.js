@@ -48,7 +48,7 @@ var TableRouter = /** @class */ (function () {
     TableRouter.get = function () {
         router.get('/', function (req, res) {
             tables_1.Tables.query()
-                .eager('[orders]')
+                .eager('[orders, typeTables]')
                 .then(function (value) { return res.status(200).send(value); })
                 .catch(function (reason) { return res.status(200).send(reason); });
         });

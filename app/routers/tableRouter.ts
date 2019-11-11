@@ -1,7 +1,6 @@
 import {Tables} from "../models/tables";
 import {Model} from "objection";
 import {Orders} from "../models/orders";
-import {Employees} from "../models/employees";
 const {transaction} = require('objection');
 
 const express = require('express');
@@ -11,7 +10,7 @@ export class TableRouter {
     static get() {
         router.get('/', function (req, res) {
             Tables.query()
-                .eager('[orders]')
+                .eager('[orders, typeTables]')
                 .then(value => res.status(200).send(value))
                 .catch(reason => res.status(200).send(reason));
         });

@@ -9,6 +9,7 @@ var detailOrderRouter_1 = require("./routers/detailOrderRouter");
 var tableRouter_1 = require("./routers/tableRouter");
 var orderRouter_1 = require("./routers/orderRouter");
 var rolRouter_1 = require("./routers/rolRouter");
+var typeTableRouter_1 = require("./routers/typeTableRouter");
 var bodyParser = require('body-parser');
 var Model = require('objection').Model;
 var Knex = require('knex');
@@ -42,6 +43,7 @@ app.use('/category', categoryRouter_1.CategoryRouter.get());
 app.use('/user', userRouter_1.UserRouter.get());
 app.use('/employee', employeeRouter_1.EmployeeRouter.get());
 app.use('/rol', rolRouter_1.RolRouter.get());
+app.use('/typeTable', typeTableRouter_1.TypeTableRouter.get());
 app.listen(3000, function () {
     console.log('http://localhost:3000/');
 });

@@ -15,6 +15,7 @@ var __extends = (this && this.__extends) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 var objection_1 = require("objection");
 var orders_1 = require("./orders");
+var typeTable_1 = require("./typeTable");
 var Tables = /** @class */ (function (_super) {
     __extends(Tables, _super);
     function Tables() {
@@ -37,7 +38,15 @@ var Tables = /** @class */ (function (_super) {
                         from: 'tables.id',
                         to: 'orders.tableId'
                     }
-                }
+                },
+                typeTables: {
+                    relation: objection_1.Model.HasOneRelation,
+                    modelClass: typeTable_1.TypeTable,
+                    join: {
+                        from: 'tables.typeTableId',
+                        to: 'typetable.id'
+                    }
+                },
             };
         },
         enumerable: true,
