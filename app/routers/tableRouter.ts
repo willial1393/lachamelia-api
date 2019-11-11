@@ -1,6 +1,7 @@
 import {Tables} from "../models/tables";
 import {Model} from "objection";
 import {Orders} from "../models/orders";
+import {Categories} from "../models/categories";
 const {transaction} = require('objection');
 
 const express = require('express');
@@ -29,7 +30,11 @@ export class TableRouter {
                         .where('name', req.params.name);
 
                     return (await Orders.query(trx)
-                        .where('tableId', table.body.id));
+                        .where('tableId', table.id)
+                        .eager('[orders]')
+                        .modifyEager('orders', builder => {
+                            builder.where('end', 'null');
+                        }));
                 });
                 res.status(200).send(trans);
             } catch (err) {

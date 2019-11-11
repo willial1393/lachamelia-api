@@ -77,7 +77,11 @@ var TableRouter = /** @class */ (function () {
                                             case 1:
                                                 table = _a.sent();
                                                 return [4 /*yield*/, orders_1.Orders.query(trx)
-                                                        .where('tableId', table.body.id)];
+                                                        .where('tableId', table.id)
+                                                        .eager('[orders]')
+                                                        .modifyEager('orders', function (builder) {
+                                                        builder.where('end', 'null');
+                                                    })];
                                             case 2: return [2 /*return*/, (_a.sent())];
                                         }
                                     });
