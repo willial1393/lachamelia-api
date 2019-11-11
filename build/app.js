@@ -17,10 +17,10 @@ var knex = Knex({
     client: 'mysql2',
     useNullAsDefault: true,
     connection: {
-        host: '127.0.0.1',
+        host: '3.133.54.94',
         user: 'root',
-        port: '3306',
-        password: '',
+        port: '3307',
+        password: 'csH6jG8W5cvPWVT',
         database: 'lachamelia'
     }
 });

@@ -78,10 +78,15 @@ export class UserRouter {
                 .where('email', req.body.email)
                 .first()
                 .then((value: any) => {
-                    res.status(200).send(value);
                     bcrypt.compare(req.body.password, value.password).then(async value1 => {
-                            if (value1) {
-
+                        if (value1) {
+                            Employees.query()
+                                .eager('[users.roles]')
+                                .where('userId', value.id)
+                                .first()
+                                .then(value2 => {
+                                    res.status(200).send(value2);
+                                });
                         } else {
                             res.status(403).send('{"status":"error gravisimo que ni idea"}');
                         }

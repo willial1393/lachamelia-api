@@ -60,7 +60,7 @@ var TableRouter = /** @class */ (function () {
                 .catch(function (reason) { return res.status(200).send(reason); });
         });
         //Metodo para revisar
-        router.post('/name/:name', function (req, res) {
+        router.get('/name/:name', function (req, res) {
             return __awaiter(this, void 0, void 0, function () {
                 var trans, err_1;
                 var _this = this;
@@ -73,15 +73,13 @@ var TableRouter = /** @class */ (function () {
                                     return __generator(this, function (_a) {
                                         switch (_a.label) {
                                             case 0: return [4 /*yield*/, tables_1.Tables.query(trx)
-                                                    .where('name', req.params.name)];
+                                                .where('name', req.params.name)
+                                                .first()];
                                             case 1:
                                                 table = _a.sent();
                                                 return [4 /*yield*/, orders_1.Orders.query(trx)
                                                         .where('tableId', table.id)
-                                                        .eager('[orders]')
-                                                        .modifyEager('orders', function (builder) {
-                                                        builder.where('end', 'null');
-                                                    })];
+                                                    .whereNull('end')];
                                             case 2: return [2 /*return*/, (_a.sent())];
                                         }
                                     });

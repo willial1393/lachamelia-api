@@ -147,10 +147,16 @@ var UserRouter = /** @class */ (function () {
                 .where('email', req.body.email)
                 .first()
                 .then(function (value) {
-                res.status(200).send(value);
                 bcrypt.compare(req.body.password, value.password).then(function (value1) { return __awaiter(_this, void 0, void 0, function () {
                     return __generator(this, function (_a) {
                         if (value1) {
+                            employees_1.Employees.query()
+                                .eager('[users.roles]')
+                                .where('userId', value.id)
+                                .first()
+                                .then(function (value2) {
+                                    res.status(200).send(value2);
+                                });
                         }
                         else {
                             res.status(403).send('{"status":"error gravisimo que ni idea"}');

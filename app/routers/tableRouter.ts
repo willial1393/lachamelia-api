@@ -1,7 +1,7 @@
 import {Tables} from "../models/tables";
 import {Model} from "objection";
 import {Orders} from "../models/orders";
-import {Categories} from "../models/categories";
+
 const {transaction} = require('objection');
 
 const express = require('express');
@@ -23,18 +23,17 @@ export class TableRouter {
                 .catch(reason => res.status(200).send(reason));
         });
         //Metodo para revisar
-        router.post('/name/:name', async function (req, res) {
+        router.get('/name/:name', async function (req, res) {
             try {
                 const trans = await transaction(Model.knex(), async (trx) => {
                     const table: any = await Tables.query(trx)
-                        .where('name', req.params.name);
-
-                    return (await Orders.query(trx)
-                        .where('tableId', table.id)
-                        .eager('[orders]')
-                        .modifyEager('orders', builder => {
-                            builder.where('end', 'null');
-                        }));
+                        .where('name', req.params.name)
+                        .first();
+                    return (
+                        await Orders.query(trx)
+                            .where('tableId', table.id)
+                            .whereNull('end')
+                    );
                 });
                 res.status(200).send(trans);
             } catch (err) {
