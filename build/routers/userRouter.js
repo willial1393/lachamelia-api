@@ -57,7 +57,8 @@ var UserRouter = /** @class */ (function () {
         router.get('/:id', function (req, res) {
             users_1.Users.query()
                 .findById(req.params.id)
-                .eager('[employees]')
+                .first()
+                .eager('[roles]')
                 .then(function (value) { return res.status(200).send(value); })
                 .catch(function (reason) { return res.status(403).send(reason); });
         });
@@ -155,8 +156,8 @@ var UserRouter = /** @class */ (function () {
                                 .where('userId', value.id)
                                 .first()
                                 .then(function (value2) {
-                                    res.status(200).send(value2);
-                                });
+                                res.status(200).send(value2);
+                            });
                         }
                         else {
                             res.status(403).send('{"status":"error gravisimo que ni idea"}');

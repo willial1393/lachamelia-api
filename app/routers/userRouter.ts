@@ -19,7 +19,8 @@ export class UserRouter {
         router.get('/:id', function (req, res) {
             Users.query()
                 .findById(req.params.id)
-                .eager('[employees]')
+                .first()
+                .eager('[roles]')
                 .then(value => res.status(200).send(value))
                 .catch(reason => res.status(403).send(reason));
         });

@@ -50,18 +50,14 @@ var TableRouter = /** @class */ (function () {
             tables_1.Tables.query()
                 .eager('[orders, typeTables]')
                 .then(function (value) { return res.status(200).send(value); })
-                .catch(function (reason) {
-                    return res.status(403).send(reason);
-                });
+                .catch(function (reason) { return res.status(403).send(reason); });
         });
         router.get('/:id', function (req, res) {
             tables_1.Tables.query()
                 .findById(req.params.id)
                 .eager('[orders]')
                 .then(function (value) { return res.status(200).send(value); })
-                .catch(function (reason) {
-                    return res.status(403).send(reason);
-                });
+                .catch(function (reason) { return res.status(403).send(reason); });
         });
         //Metodo para revisar
         router.get('/name/:name', function (req, res) {
@@ -77,13 +73,13 @@ var TableRouter = /** @class */ (function () {
                                     return __generator(this, function (_a) {
                                         switch (_a.label) {
                                             case 0: return [4 /*yield*/, tables_1.Tables.query(trx)
-                                                .where('name', req.params.name)
-                                                .first()];
+                                                    .where('name', req.params.name)
+                                                    .first()];
                                             case 1:
                                                 table = _a.sent();
                                                 return [4 /*yield*/, orders_1.Orders.query(trx)
                                                         .where('tableId', table.id)
-                                                    .whereNull('end')];
+                                                        .whereNull('end')];
                                             case 2: return [2 /*return*/, (_a.sent())];
                                         }
                                     });
@@ -106,27 +102,19 @@ var TableRouter = /** @class */ (function () {
                 .where('status', req.params.status)
                 .eager('[orders]')
                 .then(function (value) { return res.status(200).send(value); })
-                .catch(function (reason) {
-                    return res.status(403).send(reason);
-                });
+                .catch(function (reason) { return res.status(403).send(reason); });
         });
         router.post('/insert', function (req, res) {
             tables_1.Tables.query().insertAndFetch(req.body).then(function (value) { return res.status(200).send(value); })
-                .catch(function (reason) {
-                    return res.status(403).send(reason);
-                });
+                .catch(function (reason) { return res.status(403).send(reason); });
         });
         router.post('/delete', function (req, res) {
             tables_1.Tables.query().deleteById(req.body.id).then(function (value) { return res.status(200).send('{"status":"deleted"}'); })
-                .catch(function (reason) {
-                    return res.status(403).send(reason);
-                });
+                .catch(function (reason) { return res.status(403).send(reason); });
         });
         router.put('/update', function (req, res) {
             tables_1.Tables.query().updateAndFetchById(req.body.id, req.body).then(function (value) { return res.status(200).send(value); })
-                .catch(function (reason) {
-                    return res.status(403).send(reason);
-                });
+                .catch(function (reason) { return res.status(403).send(reason); });
         });
         return router;
     };

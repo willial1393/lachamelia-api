@@ -10,6 +10,13 @@ export class TypeTableRouter {
                 .then(value => res.status(200).send(value))
                 .catch(reason => res.status(200).send(reason));
         });
+        router.get('/table', function (req, res) {
+            TypeTable.query()
+                .eager('[tables]')
+                .then(value => res.status(200).send(value))
+                .catch(reason => res.status(200).send(reason));
+        });
+
         router.post('/insert', function (req, res) {
             TypeTable.query().insertAndFetch(req.body).then(value => res.status(200).send(value))
                 .catch(reason => res.status(200).send(reason));
