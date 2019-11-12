@@ -7,7 +7,7 @@ export class EmployeeRouter {
     static get() {
         router.get('/', function (req, res) {
             Employees.query()
-                .eager('[users]')
+                .eager('[users.[roles]]')
                 .then(value => res.status(200).send(value))
                 .catch(reason => res.status(403).send(reason));
         });

@@ -9,7 +9,7 @@ var EmployeeRouter = /** @class */ (function () {
     EmployeeRouter.get = function () {
         router.get('/', function (req, res) {
             employees_1.Employees.query()
-                .eager('[users]')
+                .eager('[users.[roles]]')
                 .then(function (value) { return res.status(200).send(value); })
                 .catch(function (reason) { return res.status(403).send(reason); });
         });

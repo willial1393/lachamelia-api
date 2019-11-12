@@ -12,7 +12,7 @@ export class UserRouter {
     static get() {
         router.get('/', function (req, res) {
             Users.query()
-                .eager('[employees]')
+                .eager('[roles]')
                 .then(value => res.status(200).send(value))
                 .catch(reason => res.status(403).send(reason));
         });
@@ -57,7 +57,7 @@ export class UserRouter {
                             const user: any = await Users.query(trx)
                                 .insertAndFetch(req.body.users);
                             delete req.body.users;
-
+                            delete req.body.roles;
                             req.body.userId = user.id;
                             const employee: any = await Employees.query(trx)
                                 .insertAndFetch(req.body);
@@ -99,9 +99,26 @@ export class UserRouter {
             Users.query().deleteById(req.body.id).then(value => res.status(200).send('{"status":"deleted"}'))
                 .catch(reason => res.status(403).send(reason));
         });
-        router.put('/update', function (req, res) {
-            Users.query().updateAndFetchById(req.body.id, req.body).then(value => res.status(200).send(value))
-                .catch(reason => res.status(403).send(reason));
+        router.put('/update', async function (req, res) {
+            try {
+                const trans = await transaction(Model.knex(), async (trx) => {
+
+                    const user: any = await Users.query(trx)
+                        .updateAndFetchById(req.body.users.id, req.body.users);
+                    delete req.body.users;
+                    delete req.body.roles;
+                    req.body.userId = user.id;
+                    const employee: any = await Employees.query(trx)
+                        .updateAndFetchById(req.body.id, req.body);
+
+                    return (await Employees.query(trx)
+                        .findById(employee.id)
+                        .eager('[users.roles]'));
+                });
+                res.status(200).send(trans);
+            } catch (err) {
+                res.status(403).send(err);
+            }
         });
         return router;
     }

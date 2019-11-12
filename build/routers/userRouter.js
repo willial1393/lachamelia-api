@@ -50,7 +50,7 @@ var UserRouter = /** @class */ (function () {
     UserRouter.get = function () {
         router.get('/', function (req, res) {
             users_1.Users.query()
-                .eager('[employees]')
+                .eager('[roles]')
                 .then(function (value) { return res.status(200).send(value); })
                 .catch(function (reason) { return res.status(403).send(reason); });
         });
@@ -109,6 +109,7 @@ var UserRouter = /** @class */ (function () {
                                                                     case 1:
                                                                         user = _a.sent();
                                                                         delete req.body.users;
+                                                                        delete req.body.roles;
                                                                         req.body.userId = user.id;
                                                                         return [4 /*yield*/, employees_1.Employees.query(trx)
                                                                                 .insertAndFetch(req.body)];
@@ -173,8 +174,47 @@ var UserRouter = /** @class */ (function () {
                 .catch(function (reason) { return res.status(403).send(reason); });
         });
         router.put('/update', function (req, res) {
-            users_1.Users.query().updateAndFetchById(req.body.id, req.body).then(function (value) { return res.status(200).send(value); })
-                .catch(function (reason) { return res.status(403).send(reason); });
+            return __awaiter(this, void 0, void 0, function () {
+                var trans, err_2;
+                var _this = this;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            _a.trys.push([0, 2, , 3]);
+                            return [4 /*yield*/, transaction(objection_1.Model.knex(), function (trx) { return __awaiter(_this, void 0, void 0, function () {
+                                    var user, employee;
+                                    return __generator(this, function (_a) {
+                                        switch (_a.label) {
+                                            case 0: return [4 /*yield*/, users_1.Users.query(trx)
+                                                    .updateAndFetchById(req.body.users.id, req.body.users)];
+                                            case 1:
+                                                user = _a.sent();
+                                                delete req.body.users;
+                                                delete req.body.roles;
+                                                req.body.userId = user.id;
+                                                return [4 /*yield*/, employees_1.Employees.query(trx)
+                                                        .updateAndFetchById(req.body.id, req.body)];
+                                            case 2:
+                                                employee = _a.sent();
+                                                return [4 /*yield*/, employees_1.Employees.query(trx)
+                                                        .findById(employee.id)
+                                                        .eager('[users.roles]')];
+                                            case 3: return [2 /*return*/, (_a.sent())];
+                                        }
+                                    });
+                                }); })];
+                        case 1:
+                            trans = _a.sent();
+                            res.status(200).send(trans);
+                            return [3 /*break*/, 3];
+                        case 2:
+                            err_2 = _a.sent();
+                            res.status(403).send(err_2);
+                            return [3 /*break*/, 3];
+                        case 3: return [2 /*return*/];
+                    }
+                });
+            });
         });
         return router;
     };
