@@ -10,7 +10,7 @@ var LoginRouter = /** @class */ (function () {
         router.get('/', function (req, res) {
             objection_1.Model.knexQuery().select(objection_1.Model.raw('CALL `login`("willia@univoyaca", "fda143");'))
                 .then(function (value) { return res.status(200).send(value); })
-                .catch(function (reason) { return res.status(200).send(reason); });
+                .catch(function (reason) { return res.status(403).send(reason); });
         });
         return router;
     };

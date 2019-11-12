@@ -8,13 +8,13 @@ export class CategoryRouter {
         router.get('/', function (req, res) {
             Categories.query()
                 .then(value => res.status(200).send(value))
-                .catch(reason => res.status(200).send(reason));
+                .catch(reason => res.status(403).send(reason));
         });
         router.get('/prod', function (req, res) {
             Categories.query()
                 .eager('[products]')
                 .then(value => res.status(200).send(value))
-                .catch(reason => res.status(200).send(reason));
+                .catch(reason => res.status(403).send(reason));
         });
         router.get('/price/:price', function (req, res) {
             Categories.query()
@@ -23,21 +23,21 @@ export class CategoryRouter {
                     builder.where('price', '<=', req.params.price);
                 })
                 .then(value => res.status(200).send(value))
-                .catch(reason => res.status(200).send(reason));
+                .catch(reason => res.status(403).send(reason));
         });
         router.get('/:id', function (req, res) {
             Categories.query()
                 .findById(req.params.id)
                 .eager('[products]')
                 .then(value => res.status(200).send(value))
-                .catch(reason => res.status(200).send(reason));
+                .catch(reason => res.status(403).send(reason));
         });
         router.get('/name/:name', function (req, res) {
             Categories.query()
                 .where('name', req.params.name)
                 .eager('[products]')
                 .then(value => res.status(200).send(value))
-                .catch(reason => res.status(200).send(reason));
+                .catch(reason => res.status(403).send(reason));
         });
         router.post('/insert', function (req, res) {
             Categories.query().insertAndFetch(req.body).then(value => res.status(200).send(value))
@@ -45,11 +45,11 @@ export class CategoryRouter {
         });
         router.post('/delete', function (req, res) {
             Categories.query().deleteById(req.body.id).then(value => res.status(200).send('{"status":"deleted"}'))
-                .catch(reason => res.status(200).send(reason));
+                .catch(reason => res.status(403).send(reason));
         });
         router.put('/update', function (req, res) {
             Categories.query().updateAndFetchById(req.body.id, req.body).then(value => res.status(200).send(value))
-                .catch(reason => res.status(200).send(reason));
+                .catch(reason => res.status(403).send(reason));
         });
         return router;
     }

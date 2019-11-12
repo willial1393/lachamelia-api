@@ -78,6 +78,8 @@ var TableRouter = /** @class */ (function () {
                                             case 1:
                                                 table = _a.sent();
                                                 return [4 /*yield*/, orders_1.Orders.query(trx)
+                                                        .eager('[detailsOrder, employees]')
+                                                        .first()
                                                         .where('tableId', table.id)
                                                         .whereNull('end')];
                                             case 2: return [2 /*return*/, (_a.sent())];

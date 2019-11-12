@@ -9,28 +9,29 @@ var OrderRouter = /** @class */ (function () {
     OrderRouter.get = function () {
         router.get('/', function (req, res) {
             orders_1.Orders.query()
-                .eager('[tables, employees, detailsOrder]')
+                .whereNull('end')
+                .eager('[tables, employees, detailsOrder.[products]]')
                 .then(function (value) { return res.status(200).send(value); })
-                .catch(function (reason) { return res.status(200).send(reason); });
+                .catch(function (reason) { return res.status(403).send(reason); });
         });
         router.get('/:id', function (req, res) {
             orders_1.Orders.query()
                 .findById(req.params.id)
                 .eager('[tables, employees, detailsOrder]')
                 .then(function (value) { return res.status(200).send(value); })
-                .catch(function (reason) { return res.status(200).send(reason); });
+                .catch(function (reason) { return res.status(403).send(reason); });
         });
         router.post('/insert', function (req, res) {
             orders_1.Orders.query().insertAndFetch(req.body).then(function (value) { return res.status(200).send(value); })
-                .catch(function (reason) { return res.status(200).send(reason); });
+                .catch(function (reason) { return res.status(403).send(reason); });
         });
         router.post('/delete', function (req, res) {
             orders_1.Orders.query().deleteById(req.body.id).then(function (value) { return res.status(200).send('{"status":"deleted"}'); })
-                .catch(function (reason) { return res.status(200).send(reason); });
+                .catch(function (reason) { return res.status(403).send(reason); });
         });
         router.put('/update', function (req, res) {
             orders_1.Orders.query().updateAndFetchById(req.body.id, req.body).then(function (value) { return res.status(200).send(value); })
-                .catch(function (reason) { return res.status(200).send(reason); });
+                .catch(function (reason) { return res.status(403).send(reason); });
         });
         return router;
     };
