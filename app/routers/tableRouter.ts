@@ -30,12 +30,11 @@ export class TableRouter {
                         .where('name', req.params.name)
                         .first();
                     return (
-                        await Orders.query(trx)
+                    await Orders.query(trx)
                             .eager('[detailsOrder, employees]')
                             .first()
                             .where('tableId', table.id)
-                            .whereNull('end')
-                    );
+                );
                 });
                 res.status(200).send(trans);
             } catch (err) {

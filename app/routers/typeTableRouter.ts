@@ -12,7 +12,7 @@ export class TypeTableRouter {
         });
         router.get('/table', function (req, res) {
             TypeTable.query()
-                .eager('[tables]')
+                .eager('[tables.[orders]]')
                 .then(value => res.status(200).send(value))
                 .catch(reason => res.status(403).send(reason));
         });

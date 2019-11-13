@@ -80,8 +80,7 @@ var TableRouter = /** @class */ (function () {
                                                 return [4 /*yield*/, orders_1.Orders.query(trx)
                                                         .eager('[detailsOrder, employees]')
                                                         .first()
-                                                        .where('tableId', table.id)
-                                                        .whereNull('end')];
+                                                        .where('tableId', table.id)];
                                             case 2: return [2 /*return*/, (_a.sent())];
                                         }
                                     });
