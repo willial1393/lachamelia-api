@@ -22,7 +22,6 @@ export class TableRouter {
                 .then(value => res.status(200).send(value))
                 .catch(reason => res.status(403).send(reason));
         });
-        //Metodo para revisar
         router.get('/name/:name', async function (req, res) {
             try {
                 const trans = await transaction(Model.knex(), async (trx) => {

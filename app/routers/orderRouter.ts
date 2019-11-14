@@ -49,7 +49,6 @@ export class OrderRouter {
                 res.status(403).send(err);
             }
         });
-
         router.post('/insert', function (req, res) {
             Orders.query().insertAndFetch(req.body).then(value => res.status(200).send(value))
                 .catch(reason => res.status(403).send(reason));

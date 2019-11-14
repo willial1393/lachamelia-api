@@ -1,6 +1,7 @@
 import {Model} from "objection";
 import {Roles} from "./roles";
 import {Products} from "./products";
+import {Employees} from "./employees";
 
 export class Users extends Model {
     static get tableName() {
@@ -18,8 +19,8 @@ export class Users extends Model {
                 }
             },
             employees: {
-                relation: Model.HasManyRelation,
-                modelClass: Products,
+                relation: Model.HasOneRelation,
+                modelClass: Employees,
                 join: {
                     from: 'users.id',
                     to: 'employees.userId'

@@ -21,7 +21,7 @@ export class EmployeeRouter {
         router.get('/name/:name', function (req, res) {
             Employees.query()
                 .where('name', req.params.name)
-                .eager('[orders]')
+                .eager('[orders.[detailsOrder, tables]]')
                 .then(value => res.status(200).send(value))
                 .catch(reason => res.status(403).send(reason));
         });

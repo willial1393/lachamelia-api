@@ -59,7 +59,6 @@ var TableRouter = /** @class */ (function () {
                 .then(function (value) { return res.status(200).send(value); })
                 .catch(function (reason) { return res.status(403).send(reason); });
         });
-        //Metodo para revisar
         router.get('/name/:name', function (req, res) {
             return __awaiter(this, void 0, void 0, function () {
                 var trans, err_1;

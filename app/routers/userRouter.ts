@@ -12,7 +12,7 @@ export class UserRouter {
     static get() {
         router.get('/', function (req, res) {
             Users.query()
-                .eager('[roles]')
+                .eager('[roles, employees]')
                 .then(value => res.status(200).send(value))
                 .catch(reason => res.status(403).send(reason));
         });

@@ -1,7 +1,11 @@
 import {Roles} from "../models/roles";
+import {Model} from "objection";
+import {Tables} from "../models/tables";
+import {Orders} from "../models/orders";
 
 const express = require('express');
 const router = express.Router();
+const {transaction} = require('objection');
 
 export class RolRouter {
     static get() {
@@ -9,6 +13,18 @@ export class RolRouter {
             Roles.query()
                 .then(value => res.status(200).send(value))
                 .catch(reason => res.status(403).send(reason));
+        });
+        router.get('/getMeseros', async function (req, res) {
+            try {
+                const users: any = await Roles.query()
+                    .where('name', 'Mesero')
+                    .eager('[users.[employees]]')
+                    .then(value => res.status(200).send(value))
+                    .catch(reason => res.status(403).send(reason));
+                res.status(200).send(users);
+            } catch (err) {
+                res.status(403).send(err);
+            }
         });
         router.post('/insert', function (req, res) {
             Roles.query().insertAndFetch(req.body).then(value => res.status(200).send(value))

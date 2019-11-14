@@ -15,6 +15,9 @@ var CategoryRouter = /** @class */ (function () {
         router.get('/prod', function (req, res) {
             categories_1.Categories.query()
                 .eager('[products]')
+                .modifyEager('products', function (builder) {
+                builder.whereNull('deleted');
+            })
                 .then(function (value) { return res.status(200).send(value); })
                 .catch(function (reason) { return res.status(403).send(reason); });
         });

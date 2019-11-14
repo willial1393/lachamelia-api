@@ -8,7 +8,7 @@ export class Roles extends Model {
     }
     static get relationMappings() {
         return {
-            roles: {
+            users: {
                 relation: Model.HasManyRelation,
                 modelClass: Users,
                 join: {

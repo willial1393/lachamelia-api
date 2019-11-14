@@ -15,7 +15,7 @@ var __extends = (this && this.__extends) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 var objection_1 = require("objection");
 var roles_1 = require("./roles");
-var products_1 = require("./products");
+var employees_1 = require("./employees");
 var Users = /** @class */ (function (_super) {
     __extends(Users, _super);
     function Users() {
@@ -40,8 +40,8 @@ var Users = /** @class */ (function (_super) {
                     }
                 },
                 employees: {
-                    relation: objection_1.Model.HasManyRelation,
-                    modelClass: products_1.Products,
+                    relation: objection_1.Model.HasOneRelation,
+                    modelClass: employees_1.Employees,
                     join: {
                         from: 'users.id',
                         to: 'employees.userId'

@@ -23,7 +23,7 @@ var EmployeeRouter = /** @class */ (function () {
         router.get('/name/:name', function (req, res) {
             employees_1.Employees.query()
                 .where('name', req.params.name)
-                .eager('[orders]')
+                .eager('[orders.[detailsOrder, tables]]')
                 .then(function (value) { return res.status(200).send(value); })
                 .catch(function (reason) { return res.status(403).send(reason); });
         });

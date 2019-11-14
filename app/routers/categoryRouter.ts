@@ -13,6 +13,8 @@ export class CategoryRouter {
         router.get('/prod', function (req, res) {
             Categories.query()
                 .eager('[products]')
+                .modifyEager('products', builder => {
+                builder.whereNull('deleted')})
                 .then(value => res.status(200).send(value))
                 .catch(reason => res.status(403).send(reason));
         });
@@ -52,5 +54,5 @@ export class CategoryRouter {
                 .catch(reason => res.status(403).send(reason));
         });
         return router;
+        }
     }
-}

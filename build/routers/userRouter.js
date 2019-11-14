@@ -50,7 +50,7 @@ var UserRouter = /** @class */ (function () {
     UserRouter.get = function () {
         router.get('/', function (req, res) {
             users_1.Users.query()
-                .eager('[roles]')
+                .eager('[roles, employees]')
                 .then(function (value) { return res.status(200).send(value); })
                 .catch(function (reason) { return res.status(403).send(reason); });
         });
