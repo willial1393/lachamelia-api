@@ -38,6 +38,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var orders_1 = require("../models/orders");
 var objection_1 = require("objection");
+var employees_1 = require("../models/employees");
 var tables_1 = require("../models/tables");
 var express = require('express');
 var router = express.Router();
@@ -59,9 +60,69 @@ var OrderRouter = /** @class */ (function () {
                 .then(function (value) { return res.status(200).send(value); })
                 .catch(function (reason) { return res.status(403).send(reason); });
         });
-        router.get('/name/:name', function (req, res) {
+        router.post('/insert', function (req, res) {
+            orders_1.Orders.query().insertAndFetch(req.body).then(function (value) { return res.status(200).send(value); })
+                .catch(function (reason) { return res.status(403).send(reason); });
+        });
+        router.post('/delete', function (req, res) {
+            orders_1.Orders.query().deleteById(req.body.id).then(function (value) { return res.status(200).send('{"status":"deleted"}'); })
+                .catch(function (reason) { return res.status(403).send(reason); });
+        });
+        router.put('/update', function (req, res) {
+            orders_1.Orders.query().updateAndFetchById(req.body.id, req.body).then(function (value) { return res.status(200).send(value); })
+                .catch(function (reason) { return res.status(403).send(reason); });
+        });
+        // Metodo para traer la cantidad de mesas atendidas diarias con el nombre del mesero
+        router.get('/ordersDailyByNameOfWaiter/:name', function (req, res) {
             return __awaiter(this, void 0, void 0, function () {
                 var trans, err_1;
+                var _this = this;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            _a.trys.push([0, 2, , 3]);
+                            return [4 /*yield*/, objection_1.transaction(objection_1.Model.knex(), function (trx) { return __awaiter(_this, void 0, void 0, function () {
+                                    var employee, currentDate, modifyDate, pastDate, orders;
+                                    return __generator(this, function (_a) {
+                                        switch (_a.label) {
+                                            case 0: return [4 /*yield*/, employees_1.Employees.query(trx)
+                                                    .where('name', req.params.name)
+                                                    .first()];
+                                            case 1:
+                                                employee = _a.sent();
+                                                currentDate = new Date();
+                                                modifyDate = new Date();
+                                                modifyDate.setDate((currentDate.getDate()) - 1);
+                                                pastDate = modifyDate;
+                                                return [4 /*yield*/, orders_1.Orders.query(trx)
+                                                        .whereBetween('start', [pastDate, currentDate])
+                                                        .andWhere('employeeId', employee.id)
+                                                        .eager('[detailsOrder.[products], tables]')
+                                                        .then(function (value) { return res.status(200).send(value); })
+                                                        .catch(function (reason) { return res.status(403).send(reason); })];
+                                            case 2:
+                                                orders = _a.sent();
+                                                return [2 /*return*/, (orders)];
+                                        }
+                                    });
+                                }); })];
+                        case 1:
+                            trans = _a.sent();
+                            res.status(200).send(trans);
+                            return [3 /*break*/, 3];
+                        case 2:
+                            err_1 = _a.sent();
+                            res.status(403).send(err_1);
+                            return [3 /*break*/, 3];
+                        case 3: return [2 /*return*/];
+                    }
+                });
+            });
+        });
+        //Metodo para cambiar el estado de la mesa cuando se despacho el pedido
+        router.get('/name/:name', function (req, res) {
+            return __awaiter(this, void 0, void 0, function () {
+                var trans, err_2;
                 var _this = this;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
@@ -98,25 +159,184 @@ var OrderRouter = /** @class */ (function () {
                             res.status(200).send(trans);
                             return [3 /*break*/, 3];
                         case 2:
-                            err_1 = _a.sent();
-                            res.status(403).send(err_1);
+                            err_2 = _a.sent();
+                            res.status(403).send(err_2);
                             return [3 /*break*/, 3];
                         case 3: return [2 /*return*/];
                     }
                 });
             });
         });
-        router.post('/insert', function (req, res) {
-            orders_1.Orders.query().insertAndFetch(req.body).then(function (value) { return res.status(200).send(value); })
-                .catch(function (reason) { return res.status(403).send(reason); });
+        //Metodo para regresar la cantidad de mesas atendidas por el id del mesero en una semana
+        router.get('/getOrdersByEmployeeInWeek/:employeeId', function (req, res) {
+            return __awaiter(this, void 0, void 0, function () {
+                var trans, err_3;
+                var _this = this;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            _a.trys.push([0, 2, , 3]);
+                            return [4 /*yield*/, objection_1.transaction(objection_1.Model.knex(), function (trx) { return __awaiter(_this, void 0, void 0, function () {
+                                    var currentDate, modifyDate, pastDate, orders;
+                                    return __generator(this, function (_a) {
+                                        currentDate = new Date();
+                                        modifyDate = new Date();
+                                        modifyDate.setDate((currentDate.getDate()) - 7);
+                                        pastDate = modifyDate;
+                                        orders = orders_1.Orders.query(trx)
+                                            .whereBetween('start', [pastDate, currentDate])
+                                            .andWhere('employeeId', req.params.employeeId)
+                                            .count()
+                                            .first()
+                                            .then(function (value) {
+                                            var value1 = value.toJSON();
+                                            res.status(200).send(value1);
+                                        })
+                                            .catch(function (reason) { return res.status(403).send(reason); });
+                                        return [2 /*return*/, (orders)];
+                                    });
+                                }); })];
+                        case 1:
+                            trans = _a.sent();
+                            res.status(200).send(trans);
+                            return [3 /*break*/, 3];
+                        case 2:
+                            err_3 = _a.sent();
+                            res.status(403).send(err_3);
+                            return [3 /*break*/, 3];
+                        case 3: return [2 /*return*/];
+                    }
+                });
+            });
         });
-        router.post('/delete', function (req, res) {
-            orders_1.Orders.query().deleteById(req.body.id).then(function (value) { return res.status(200).send('{"status":"deleted"}'); })
-                .catch(function (reason) { return res.status(403).send(reason); });
+        //Metodo para regresar la cantidad de mesas atendidas por el id del mesero en una mes
+        router.get('/getOrdersByEmployeeInMonth/:employeeId', function (req, res) {
+            return __awaiter(this, void 0, void 0, function () {
+                var trans, err_4;
+                var _this = this;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            _a.trys.push([0, 2, , 3]);
+                            return [4 /*yield*/, objection_1.transaction(objection_1.Model.knex(), function (trx) { return __awaiter(_this, void 0, void 0, function () {
+                                    var currentDate, modifyDate, pastDate, orders;
+                                    return __generator(this, function (_a) {
+                                        currentDate = new Date();
+                                        modifyDate = new Date();
+                                        modifyDate.setMonth((currentDate.getMonth()) - 1);
+                                        pastDate = modifyDate;
+                                        orders = orders_1.Orders.query(trx)
+                                            .whereBetween('start', [pastDate, currentDate])
+                                            .andWhere('employeeId', req.params.employeeId)
+                                            .count()
+                                            .first()
+                                            .then(function (value) {
+                                            var value1 = value.toJSON();
+                                            res.status(200).send(value1);
+                                        })
+                                            .catch(function (reason) { return res.status(403).send(reason); });
+                                        console.log(pastDate);
+                                        return [2 /*return*/, (orders)];
+                                    });
+                                }); })];
+                        case 1:
+                            trans = _a.sent();
+                            res.status(200).send(trans);
+                            return [3 /*break*/, 3];
+                        case 2:
+                            err_4 = _a.sent();
+                            res.status(403).send(err_4);
+                            return [3 /*break*/, 3];
+                        case 3: return [2 /*return*/];
+                    }
+                });
+            });
         });
-        router.put('/update', function (req, res) {
-            orders_1.Orders.query().updateAndFetchById(req.body.id, req.body).then(function (value) { return res.status(200).send(value); })
-                .catch(function (reason) { return res.status(403).send(reason); });
+        //Metodo para regresar las ganancias totales de las ordenes por mesero en una semana
+        router.get('/getCostOfOrdersByEmployeeInWeek/:employeeId', function (req, res) {
+            return __awaiter(this, void 0, void 0, function () {
+                var trans, err_5;
+                var _this = this;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            _a.trys.push([0, 2, , 3]);
+                            return [4 /*yield*/, objection_1.transaction(objection_1.Model.knex(), function (trx) { return __awaiter(_this, void 0, void 0, function () {
+                                    var currentDate, modifyDate, pastDate, orders;
+                                    return __generator(this, function (_a) {
+                                        currentDate = new Date();
+                                        modifyDate = new Date();
+                                        modifyDate.setDate((currentDate.getDate()) - 7);
+                                        pastDate = modifyDate;
+                                        orders = orders_1.Orders.query(trx)
+                                            .whereBetween('start', [pastDate, currentDate])
+                                            .andWhere('employeeId', req.params.employeeId)
+                                            .sum('total')
+                                            .first()
+                                            .then(function (value) {
+                                            var value1 = value.toJSON();
+                                            res.status(200).send(value1);
+                                        })
+                                            .catch(function (reason) { return res.status(403).send(reason); });
+                                        console.log(pastDate);
+                                        return [2 /*return*/, (orders)];
+                                    });
+                                }); })];
+                        case 1:
+                            trans = _a.sent();
+                            res.status(200).send(trans);
+                            return [3 /*break*/, 3];
+                        case 2:
+                            err_5 = _a.sent();
+                            res.status(403).send(err_5);
+                            return [3 /*break*/, 3];
+                        case 3: return [2 /*return*/];
+                    }
+                });
+            });
+        });
+        //Metodo para regresar las ganancias totales de las ordenes por mesero en un mes
+        router.get('/getCostOfOrdersByEmployeeInMonth/:employeeId', function (req, res) {
+            return __awaiter(this, void 0, void 0, function () {
+                var trans, err_6;
+                var _this = this;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            _a.trys.push([0, 2, , 3]);
+                            return [4 /*yield*/, objection_1.transaction(objection_1.Model.knex(), function (trx) { return __awaiter(_this, void 0, void 0, function () {
+                                    var currentDate, modifyDate, pastDate, orders;
+                                    return __generator(this, function (_a) {
+                                        currentDate = new Date();
+                                        modifyDate = new Date();
+                                        modifyDate.setMonth((currentDate.getMonth()) - 1);
+                                        pastDate = modifyDate;
+                                        orders = orders_1.Orders.query(trx)
+                                            .whereBetween('start', [pastDate, currentDate])
+                                            .andWhere('employeeId', req.params.employeeId)
+                                            .sum('total')
+                                            .first()
+                                            .then(function (value) {
+                                            var value1 = value.toJSON();
+                                            res.status(200).send(value1);
+                                        })
+                                            .catch(function (reason) { return res.status(403).send(reason); });
+                                        console.log(pastDate);
+                                        return [2 /*return*/, (orders)];
+                                    });
+                                }); })];
+                        case 1:
+                            trans = _a.sent();
+                            res.status(200).send(trans);
+                            return [3 /*break*/, 3];
+                        case 2:
+                            err_6 = _a.sent();
+                            res.status(403).send(err_6);
+                            return [3 /*break*/, 3];
+                        case 3: return [2 /*return*/];
+                    }
+                });
+            });
         });
         return router;
     };

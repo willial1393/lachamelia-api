@@ -13,13 +13,6 @@ var DetailOrderRouter = /** @class */ (function () {
                 .then(function (value) { return res.status(200).send(value); })
                 .catch(function (reason) { return res.status(403).send(reason); });
         });
-        router.get('/orderId/:orderId', function (req, res) {
-            detailsOrder_1.DetailsOrder.query()
-                .where('orderId', req.params.orderId)
-                .eager('[products]')
-                .then(function (value) { return res.status(200).send(value); })
-                .catch(function (reason) { return res.status(403).send(reason); });
-        });
         router.post('/insert', function (req, res) {
             detailsOrder_1.DetailsOrder.query().insertAndFetch(req.body).then(function (value) { return res.status(200).send(value); })
                 .catch(function (reason) { return res.status(403).send(reason); });
@@ -30,6 +23,14 @@ var DetailOrderRouter = /** @class */ (function () {
         });
         router.put('/update', function (req, res) {
             detailsOrder_1.DetailsOrder.query().updateAndFetchById(req.body.id, req.body).then(function (value) { return res.status(200).send(value); })
+                .catch(function (reason) { return res.status(403).send(reason); });
+        });
+        // Metodo para traer todos los detalles con sus productos segun el id de la orden
+        router.get('/byOrderId/:orderId', function (req, res) {
+            detailsOrder_1.DetailsOrder.query()
+                .where('orderId', req.params.orderId)
+                .eager('[products]')
+                .then(function (value) { return res.status(200).send(value); })
                 .catch(function (reason) { return res.status(403).send(reason); });
         });
         return router;

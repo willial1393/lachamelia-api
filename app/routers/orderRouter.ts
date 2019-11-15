@@ -3,6 +3,7 @@ import {Model, transaction} from "objection";
 import {Users} from "../models/users";
 import {Employees} from "../models/employees";
 import {Tables} from "../models/tables";
+import DateTimeFormat = Intl.DateTimeFormat;
 
 const express = require('express');
 const router = express.Router();
@@ -23,6 +24,46 @@ export class OrderRouter {
                 .then(value => res.status(200).send(value))
                 .catch(reason => res.status(403).send(reason));
         });
+        router.post('/insert', function (req, res) {
+            Orders.query().insertAndFetch(req.body).then(value => res.status(200).send(value))
+                .catch(reason => res.status(403).send(reason));
+        });
+        router.post('/delete', function (req, res) {
+            Orders.query().deleteById(req.body.id).then(value => res.status(200).send('{"status":"deleted"}'))
+                .catch(reason => res.status(403).send(reason));
+        });
+        router.put('/update', function (req, res) {
+            Orders.query().updateAndFetchById(req.body.id, req.body).then(value => res.status(200).send(value))
+                .catch(reason => res.status(403).send(reason));
+        });
+
+        // Metodo para traer la cantidad de mesas atendidas diarias con el nombre del mesero
+        router.get('/ordersDailyByNameOfWaiter/:name', async function (req, res) {
+            try {
+                const trans = await transaction(Model.knex(), async (trx) => {
+                    let employee: any = await Employees.query(trx)
+                        .where('name', req.params.name)
+                        .first();
+                    var currentDate = new Date();
+                    var modifyDate = new Date();
+                    modifyDate.setDate((currentDate.getDate())-1);
+                    var pastDate = modifyDate;
+
+                    const orders: any = await Orders.query(trx)
+                        .whereBetween('start', [pastDate, currentDate])
+                        .andWhere('employeeId', employee.id)
+                        .eager('[detailsOrder.[products], tables]')
+                        .then(value => res.status(200).send(value))
+                        .catch(reason => res.status(403).send(reason));
+
+                    return (orders);
+                });
+                res.status(200).send(trans);
+            } catch (err) {
+                res.status(403).send(err);
+            }
+        });
+        //Metodo para cambiar el estado de la mesa cuando se despacho el pedido
         router.get('/name/:name', async function (req, res) {
             try {
                 const trans = await transaction(Model.knex(), async (trx) => {
@@ -49,17 +90,107 @@ export class OrderRouter {
                 res.status(403).send(err);
             }
         });
-        router.post('/insert', function (req, res) {
-            Orders.query().insertAndFetch(req.body).then(value => res.status(200).send(value))
-                .catch(reason => res.status(403).send(reason));
+        //Metodo para regresar la cantidad de mesas atendidas por el id del mesero en una semana
+        router.get('/getOrdersByEmployeeInWeek/:employeeId', async function (req, res) {
+            try {
+                const trans = await transaction(Model.knex(), async (trx) => {
+                    var currentDate = new Date();
+                    var modifyDate = new Date();
+                    modifyDate.setDate((currentDate.getDate())-7);
+                    var pastDate = modifyDate;
+
+                    const orders: any = Orders.query(trx)
+                        .whereBetween('start', [pastDate, currentDate])
+                        .andWhere('employeeId', req.params.employeeId)
+                        .count()
+                        .first()
+                        .then(value => {
+                            const value1 = value.toJSON();
+                            res.status(200).send(value1)})
+                        .catch(reason => res.status(403).send(reason));
+                    return (orders);
+                });
+                res.status(200).send(trans);
+            } catch (err) {
+                res.status(403).send(err);
+            }
         });
-        router.post('/delete', function (req, res) {
-            Orders.query().deleteById(req.body.id).then(value => res.status(200).send('{"status":"deleted"}'))
-                .catch(reason => res.status(403).send(reason));
+        //Metodo para regresar la cantidad de mesas atendidas por el id del mesero en una mes
+        router.get('/getOrdersByEmployeeInMonth/:employeeId', async function (req, res) {
+            try {
+                const trans = await transaction(Model.knex(), async (trx) => {
+                    var currentDate = new Date();
+                    var modifyDate = new Date();
+                    modifyDate.setMonth((currentDate.getMonth())-1);
+                    var pastDate = modifyDate;
+                    const orders: any = Orders.query(trx)
+                        .whereBetween('start', [pastDate, currentDate])
+                        .andWhere('employeeId', req.params.employeeId)
+                        .count()
+                        .first()
+                        .then(value => {
+                            const value1 = value.toJSON();
+                            res.status(200).send(value1)})
+                        .catch(reason => res.status(403).send(reason));
+                    console.log(pastDate);
+                    return (orders);
+                });
+                res.status(200).send(trans);
+            } catch (err) {
+                res.status(403).send(err);
+            }
         });
-        router.put('/update', function (req, res) {
-            Orders.query().updateAndFetchById(req.body.id, req.body).then(value => res.status(200).send(value))
-                .catch(reason => res.status(403).send(reason));
+        //Metodo para regresar las ganancias totales de las ordenes por mesero en una semana
+        router.get('/getCostOfOrdersByEmployeeInWeek/:employeeId', async function (req, res) {
+            try {
+                const trans = await transaction(Model.knex(), async (trx) => {
+                    var currentDate = new Date();
+                    var modifyDate = new Date();
+                    modifyDate.setDate((currentDate.getDate())-7);
+                    var pastDate = modifyDate;
+
+                    const orders: any = Orders.query(trx)
+                        .whereBetween('start', [pastDate, currentDate])
+                        .andWhere('employeeId', req.params.employeeId)
+                        .sum('total')
+                        .first()
+                        .then(value => {
+                            const value1 = value.toJSON();
+                            res.status(200).send(value1)})
+                        .catch(reason => res.status(403).send(reason));
+                    console.log(pastDate);
+                    return (orders);
+                });
+                res.status(200).send(trans);
+            } catch (err) {
+                res.status(403).send(err);
+            }
+        });
+        //Metodo para regresar las ganancias totales de las ordenes por mesero en un mes
+        router.get('/getCostOfOrdersByEmployeeInMonth/:employeeId', async function (req, res) {
+            try {
+                const trans = await transaction(Model.knex(), async (trx) => {
+                    var currentDate = new Date();
+                    var modifyDate = new Date();
+                    modifyDate.setMonth((currentDate.getMonth())-1);
+                    var pastDate = modifyDate;
+
+                    const orders: any = Orders.query(trx)
+                        .whereBetween('start', [pastDate, currentDate])
+                        .andWhere('employeeId', req.params.employeeId)
+                        .sum('total')
+                        .first()
+                        .then(value => {
+                            const value1 = value.toJSON();
+                            res.status(200).send(value1)})
+                        .catch(reason => res.status(403).send(reason));
+                    console.log(pastDate);
+                    return (orders);
+                });
+                res.status(200).send(trans);
+            } catch (err) {
+                res.status(403).send(err);
+            }
         });
         return router;
     }

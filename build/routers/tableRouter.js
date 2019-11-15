@@ -79,7 +79,8 @@ var TableRouter = /** @class */ (function () {
                                                 return [4 /*yield*/, orders_1.Orders.query(trx)
                                                         .eager('[detailsOrder, employees]')
                                                         .first()
-                                                        .where('tableId', table.id)];
+                                                        .whereNull('end')
+                                                        .andWhere('tableId', table.id)];
                                             case 2: return [2 /*return*/, (_a.sent())];
                                         }
                                     });
@@ -115,6 +116,98 @@ var TableRouter = /** @class */ (function () {
         router.put('/update', function (req, res) {
             tables_1.Tables.query().updateAndFetchById(req.body.id, req.body).then(function (value) { return res.status(200).send(value); })
                 .catch(function (reason) { return res.status(403).send(reason); });
+        });
+        //Metodo para traer la cantidad de ordenes diarias segun el nombre de la mesa
+        router.get('/quantityOrdersDairysByTable/:name', function (req, res) {
+            return __awaiter(this, void 0, void 0, function () {
+                var trans, err_2;
+                var _this = this;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            _a.trys.push([0, 2, , 3]);
+                            return [4 /*yield*/, transaction(objection_1.Model.knex(), function (trx) { return __awaiter(_this, void 0, void 0, function () {
+                                    var table, currentDate, modifyDate, pastDate, orders;
+                                    return __generator(this, function (_a) {
+                                        switch (_a.label) {
+                                            case 0: return [4 /*yield*/, tables_1.Tables.query(trx)
+                                                    .where('name', req.params.name)
+                                                    .first()];
+                                            case 1:
+                                                table = _a.sent();
+                                                currentDate = new Date();
+                                                modifyDate = new Date();
+                                                modifyDate.setDate((currentDate.getDate()) - 1);
+                                                pastDate = modifyDate;
+                                                orders = orders_1.Orders.query(trx)
+                                                    .whereBetween('start', [pastDate, currentDate])
+                                                    .andWhere('tableId', table.id)
+                                                    .count()
+                                                    .first()
+                                                    .then(function (value) { return res.status(200).send(value); })
+                                                    .catch(function (reason) { return res.status(403).send(reason); });
+                                                return [2 /*return*/, (orders)];
+                                        }
+                                    });
+                                }); })];
+                        case 1:
+                            trans = _a.sent();
+                            res.status(200).send(trans);
+                            return [3 /*break*/, 3];
+                        case 2:
+                            err_2 = _a.sent();
+                            res.status(403).send(err_2);
+                            return [3 /*break*/, 3];
+                        case 3: return [2 /*return*/];
+                    }
+                });
+            });
+        });
+        //Metodo para traer el total ganado diario segun el nombre de la mesa
+        router.get('/totalPaidOrdersDairysByTable/:name', function (req, res) {
+            return __awaiter(this, void 0, void 0, function () {
+                var trans, err_3;
+                var _this = this;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            _a.trys.push([0, 2, , 3]);
+                            return [4 /*yield*/, transaction(objection_1.Model.knex(), function (trx) { return __awaiter(_this, void 0, void 0, function () {
+                                    var table, currentDate, modifyDate, pastDate, orders;
+                                    return __generator(this, function (_a) {
+                                        switch (_a.label) {
+                                            case 0: return [4 /*yield*/, tables_1.Tables.query(trx)
+                                                    .where('name', req.params.name)
+                                                    .first()];
+                                            case 1:
+                                                table = _a.sent();
+                                                currentDate = new Date();
+                                                modifyDate = new Date();
+                                                modifyDate.setDate((currentDate.getDate()) - 1);
+                                                pastDate = modifyDate;
+                                                orders = orders_1.Orders.query(trx)
+                                                    .whereBetween('start', [pastDate, currentDate])
+                                                    .andWhere('tableId', table.id)
+                                                    .sum('total')
+                                                    .first()
+                                                    .then(function (value) { return res.status(200).send(value); })
+                                                    .catch(function (reason) { return res.status(403).send(reason); });
+                                                return [2 /*return*/, (orders)];
+                                        }
+                                    });
+                                }); })];
+                        case 1:
+                            trans = _a.sent();
+                            res.status(200).send(trans);
+                            return [3 /*break*/, 3];
+                        case 2:
+                            err_3 = _a.sent();
+                            res.status(403).send(err_3);
+                            return [3 /*break*/, 3];
+                        case 3: return [2 /*return*/];
+                    }
+                });
+            });
         });
         return router;
     };
