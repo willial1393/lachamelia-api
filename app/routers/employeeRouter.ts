@@ -1,7 +1,4 @@
 import {Employees} from "../models/employees";
-import {Model, transaction} from "objection";
-import {Orders} from "../models/orders";
-import {Tables} from "../models/tables";
 
 const express = require('express');
 const router = express.Router();
@@ -12,6 +9,18 @@ export class EmployeeRouter {
             Employees.query()
                 .eager('[users.[roles]]')
                 .then(value => res.status(200).send(value))
+                .catch(reason => res.status(403).send(reason));
+        });
+        router.get('/waiters', function (req, res) {
+            Employees.query()
+                .eager('[users.[roles]]')
+                .modifyEager('users.roles', builder => {
+                    builder.where('name', 'Mesero')
+                })
+                .then((value: any[]) => {
+                    value = value.filter(value1 => value1.users.roles !== null);
+                    res.status(200).send(value);
+                })
                 .catch(reason => res.status(403).send(reason));
         });
         router.get('/email/:email', function (req, res) {

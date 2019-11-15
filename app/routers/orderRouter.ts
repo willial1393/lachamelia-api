@@ -1,10 +1,9 @@
 import {Orders} from "../models/orders";
 import {Model, transaction} from "objection";
-import {Users} from "../models/users";
 import {Employees} from "../models/employees";
 import {Tables} from "../models/tables";
-import DateTimeFormat = Intl.DateTimeFormat;
 
+const moment = require('moment-timezone');
 const express = require('express');
 const router = express.Router();
 
@@ -44,23 +43,20 @@ export class OrderRouter {
                     let employee: any = await Employees.query(trx)
                         .where('name', req.params.name)
                         .first();
-                    var currentDate = new Date();
-                    var modifyDate = new Date();
-                    modifyDate.setDate((currentDate.getDate())-1);
-                    var pastDate = modifyDate;
 
+                    const currentDate = moment(new Date()).tz('America/Bogota');
+                    const date1: string = currentDate.hours(0).minutes(0).seconds(0).format('YYYY-MM-DD HH:mm:ss');
+                    const date2: string = currentDate.add(1, "days").format('YYYY-MM-DD HH:mm:ss');
                     const orders: any = await Orders.query(trx)
-                        .whereBetween('start', [pastDate, currentDate])
+                        .whereBetween('start', [date1, date2])
                         .andWhere('employeeId', employee.id)
-                        .eager('[detailsOrder.[products], tables]')
-                        .then(value => res.status(200).send(value))
-                        .catch(reason => res.status(403).send(reason));
+                        .eager('[detailsOrder.[products], tables]');
 
-                    return (orders);
+                    return orders;
                 });
                 res.status(200).send(trans);
             } catch (err) {
-                res.status(403).send(err);
+                res.status(403).send(JSON.stringify(err));
             }
         });
         //Metodo para cambiar el estado de la mesa cuando se despacho el pedido
@@ -96,19 +92,17 @@ export class OrderRouter {
                 const trans = await transaction(Model.knex(), async (trx) => {
                     var currentDate = new Date();
                     var modifyDate = new Date();
-                    modifyDate.setDate((currentDate.getDate())-7);
+                    modifyDate.setDate((currentDate.getDate()) - 7);
                     var pastDate = modifyDate;
 
-                    const orders: any = Orders.query(trx)
-                        .whereBetween('start', [pastDate, currentDate])
-                        .andWhere('employeeId', req.params.employeeId)
-                        .count()
+                    const orders: any = await Orders.query(trx)
                         .first()
-                        .then(value => {
-                            const value1 = value.toJSON();
-                            res.status(200).send(value1)})
-                        .catch(reason => res.status(403).send(reason));
-                    return (orders);
+                        .select('*',
+                            Orders.query(trx)
+                                .whereBetween('start', [pastDate, currentDate])
+                                .andWhere('employeeId', req.params.employeeId)
+                                .count().as('length'));
+                    return {status: orders.length};
                 });
                 res.status(200).send(trans);
             } catch (err) {
@@ -121,7 +115,7 @@ export class OrderRouter {
                 const trans = await transaction(Model.knex(), async (trx) => {
                     var currentDate = new Date();
                     var modifyDate = new Date();
-                    modifyDate.setMonth((currentDate.getMonth())-1);
+                    modifyDate.setMonth((currentDate.getMonth()) - 1);
                     var pastDate = modifyDate;
                     const orders: any = Orders.query(trx)
                         .whereBetween('start', [pastDate, currentDate])
@@ -130,7 +124,8 @@ export class OrderRouter {
                         .first()
                         .then(value => {
                             const value1 = value.toJSON();
-                            res.status(200).send(value1)})
+                            res.status(200).send(value1)
+                        })
                         .catch(reason => res.status(403).send(reason));
                     console.log(pastDate);
                     return (orders);
@@ -146,7 +141,7 @@ export class OrderRouter {
                 const trans = await transaction(Model.knex(), async (trx) => {
                     var currentDate = new Date();
                     var modifyDate = new Date();
-                    modifyDate.setDate((currentDate.getDate())-7);
+                    modifyDate.setDate((currentDate.getDate()) - 7);
                     var pastDate = modifyDate;
 
                     const orders: any = Orders.query(trx)
@@ -156,7 +151,8 @@ export class OrderRouter {
                         .first()
                         .then(value => {
                             const value1 = value.toJSON();
-                            res.status(200).send(value1)})
+                            res.status(200).send(value1)
+                        })
                         .catch(reason => res.status(403).send(reason));
                     console.log(pastDate);
                     return (orders);
@@ -172,7 +168,7 @@ export class OrderRouter {
                 const trans = await transaction(Model.knex(), async (trx) => {
                     var currentDate = new Date();
                     var modifyDate = new Date();
-                    modifyDate.setMonth((currentDate.getMonth())-1);
+                    modifyDate.setMonth((currentDate.getMonth()) - 1);
                     var pastDate = modifyDate;
 
                     const orders: any = Orders.query(trx)
@@ -182,7 +178,8 @@ export class OrderRouter {
                         .first()
                         .then(value => {
                             const value1 = value.toJSON();
-                            res.status(200).send(value1)})
+                            res.status(200).send(value1)
+                        })
                         .catch(reason => res.status(403).send(reason));
                     console.log(pastDate);
                     return (orders);
