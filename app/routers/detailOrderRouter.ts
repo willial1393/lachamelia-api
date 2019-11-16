@@ -1,6 +1,9 @@
 import {DetailsOrder} from "../models/detailsOrder";
 import {Products} from "../models/products";
 import {Categories} from "../models/categories";
+import {Model, transaction} from "objection";
+import {Employees} from "../models/employees";
+import {Orders} from "../models/orders";
 
 const express = require('express');
 const router = express.Router();
@@ -28,12 +31,27 @@ export class DetailOrderRouter {
 
 
         // Metodo para traer todos los detalles con sus productos segun el id de la orden
-        router.get('/byOrderId/:orderId', function (req, res) {
-            DetailsOrder.query()
-                .where('orderId', req.params.orderId)
-                .eager('[products]')
-                .then(value => res.status(200).send(value))
-                .catch(reason => res.status(403).send(reason));
+        router.get('/byOrderId/:orderId', async function (req, res) {
+            try {
+                const trans = await transaction(Model.knex(), async (trx) => {
+
+                    const orderReturn: any = await  Orders.query(trx)
+                        .where('id', req.params.orderId)
+                        .whereNotNull('total');
+
+                    return (DetailsOrder.query(trx)
+                        .where('orderId', orderReturn.id)
+                        .eager('[products]')
+                        .then(value => res.status(200).send(value))
+                        .catch(reason => res.status(403).send(reason)))
+
+                });
+                res.status(200).send(trans);
+            } catch (err) {
+                res.status(403).send(JSON.stringify(err));
+            }
+
+
         });
         return router;
     }

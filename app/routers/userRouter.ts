@@ -48,6 +48,7 @@ export class UserRouter {
         //     });
         // });
         router.post('/register/employee', async function (req, res) {
+            console.log(req.body);
             await bcrypt.genSalt(saltRounds, function (err, salt) {
                 bcrypt.hash(req.body.users.password, salt, async function (err, hash) {
                     try {

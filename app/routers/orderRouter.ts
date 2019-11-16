@@ -2,6 +2,8 @@ import {Orders} from "../models/orders";
 import {Model, transaction} from "objection";
 import {Employees} from "../models/employees";
 import {Tables} from "../models/tables";
+import {Users} from "../models/users";
+import {DetailsOrder} from "../models/detailsOrder";
 
 const moment = require('moment-timezone');
 const express = require('express');
@@ -23,10 +25,6 @@ export class OrderRouter {
                 .then(value => res.status(200).send(value))
                 .catch(reason => res.status(403).send(reason));
         });
-        router.post('/insert', function (req, res) {
-            Orders.query().insertAndFetch(req.body).then(value => res.status(200).send(value))
-                .catch(reason => res.status(403).send(reason));
-        });
         router.post('/delete', function (req, res) {
             Orders.query().deleteById(req.body.id).then(value => res.status(200).send('{"status":"deleted"}'))
                 .catch(reason => res.status(403).send(reason));
@@ -36,7 +34,7 @@ export class OrderRouter {
                 .catch(reason => res.status(403).send(reason));
         });
 
-        // Metodo para traer la cantidad de mesas atendidas diarias con el nombre del mesero
+        // Metodo para traer las ordenes atendidas diarias con el nombre del mesero
         router.get('/ordersDailyByNameOfWaiter/:name', async function (req, res) {
             try {
                 const trans = await transaction(Model.knex(), async (trx) => {
@@ -47,6 +45,7 @@ export class OrderRouter {
                     const currentDate = moment(new Date()).tz('America/Bogota');
                     const date1: string = currentDate.hours(0).minutes(0).seconds(0).format('YYYY-MM-DD HH:mm:ss');
                     const date2: string = currentDate.add(1, "days").format('YYYY-MM-DD HH:mm:ss');
+
                     const orders: any = await Orders.query(trx)
                         .whereBetween('start', [date1, date2])
                         .andWhere('employeeId', employee.id)
@@ -63,23 +62,82 @@ export class OrderRouter {
         router.get('/name/:name', async function (req, res) {
             try {
                 const trans = await transaction(Model.knex(), async (trx) => {
-                    let table: any = await Tables.query(trx)
+                    const getTable: any = await Tables.query(trx)
                         .where('name', req.params.name)
                         .first();
-                    table.status = 'Ocupado';
-                    Tables.query().updateAndFetchById(table.id, table).then(value => res.status(200).send(value))
-                        .catch(reason => res.status(403).send(reason))
-                    let order: any = await Orders.query(trx)
+                    getTable.status = 'Ocupado';
+                    await Tables.query(trx).updateAndFetchById(getTable.id, getTable)
+
+                    const order: any = await Orders.query(trx)
                         .eager('[detailsOrder, employees]')
                         .first()
-                        .where('tableId', table.id)
+                        .where('tableId', getTable.id)
                         .whereNull('end');
                     order.end = new Date();
-                    console.log(order);
+
                     return (
-                        Orders.query().updateAndFetchById(order.id, order).then(value => res.status(200).send(value))
-                            .catch(reason => res.status(403).send(reason))
+                        await Orders.query(trx).updateAndFetchById(order.id, order)
                     );
+                });
+                res.status(200).send(trans);
+            } catch (err) {
+                res.status(403).send(err);
+            }
+        });
+
+
+        // Metodo guardar el total de la orden y cambiar el estado de la mesa
+        router.post('/payOrder', async function (req, res) {
+            try {
+                const trans = await transaction(Model.knex(), async (trx) => {
+                    delete req.body.detailsOrder;
+
+                    const orderSaved: any = await Orders.query(trx)
+                        .where('id', req.body.id)
+                        .first()
+                    orderSaved.total = req.body.total;
+                    await Orders.query(trx).updateAndFetchById(orderSaved.id, orderSaved)
+                    const tableChanged: any = await Tables.query(trx)
+                        .where('id', orderSaved.tableId)
+                        .first()
+                    tableChanged.status = 'Disponible';
+                    await Tables.query(trx).updateAndFetchById(tableChanged.id, tableChanged)
+
+                    return (orderSaved);
+                });
+                res.status(200).send(trans);
+            } catch (err) {
+                res.status(403).send(err);
+            }
+        });
+
+        // Metodo para guardar la orden con sus detalles y cambiar el estado de la mesa
+        router.post('/insertOrderWithDetails', async function (req, res) {
+            try {
+                const trans = await transaction(Model.knex(), async (trx) => {
+
+                    let contador = 0;
+                    const orderFull: Orders = req.body
+                    delete req.body.detailsOrder.products;
+
+                    const orderSaved: any = await Orders.query(trx)
+                        .insertAndFetch(orderFull);
+
+
+                    while (req.body.detailsOrder[contador]){
+                        req.body.detailsOrder[contador].orderId = orderSaved.id;
+                        delete req.body.detailsOrder[contador].products;
+                        await DetailsOrder.query(trx)
+                            .insertAndFetch(req.body.detailsOrder[contador]);
+                        contador++;
+                    }
+
+                    let table: any = await Tables.query(trx)
+                        .where('id', orderSaved.tableId)
+                        .first();
+                    table.status = 'En cocina';
+                    await Tables.query(trx).updateAndFetchById(table.id, table)
+                    return (orderSaved);
                 });
                 res.status(200).send(trans);
             } catch (err) {
@@ -90,16 +148,15 @@ export class OrderRouter {
         router.get('/getOrdersByEmployeeInWeek/:employeeId', async function (req, res) {
             try {
                 const trans = await transaction(Model.knex(), async (trx) => {
-                    var currentDate = new Date();
-                    var modifyDate = new Date();
-                    modifyDate.setDate((currentDate.getDate()) - 7);
-                    var pastDate = modifyDate;
+                    const currentDate = moment(new Date()).tz('America/Bogota');
+                    const date1: string = currentDate.hours(0).minutes(0).seconds(0).format('YYYY-MM-DD HH:mm:ss');
+                    const date2: string = currentDate.add(7, "days").format('YYYY-MM-DD HH:mm:ss');
 
                     const orders: any = await Orders.query(trx)
                         .first()
                         .select('*',
                             Orders.query(trx)
-                                .whereBetween('start', [pastDate, currentDate])
+                                .whereBetween('start', [date1, date2])
                                 .andWhere('employeeId', req.params.employeeId)
                                 .count().as('length'));
                     return {status: orders.length};
@@ -113,22 +170,18 @@ export class OrderRouter {
         router.get('/getOrdersByEmployeeInMonth/:employeeId', async function (req, res) {
             try {
                 const trans = await transaction(Model.knex(), async (trx) => {
-                    var currentDate = new Date();
-                    var modifyDate = new Date();
-                    modifyDate.setMonth((currentDate.getMonth()) - 1);
-                    var pastDate = modifyDate;
-                    const orders: any = Orders.query(trx)
-                        .whereBetween('start', [pastDate, currentDate])
-                        .andWhere('employeeId', req.params.employeeId)
-                        .count()
+                    const currentDate = moment(new Date()).tz('America/Bogota');
+                    const date1: string = currentDate.hours(0).minutes(0).seconds(0).format('YYYY-MM-DD HH:mm:ss');
+                    const date2: string = currentDate.add(-1, "months").format('YYYY-MM-DD HH:mm:ss');
+
+                    const orders: any = await Orders.query(trx)
                         .first()
-                        .then(value => {
-                            const value1 = value.toJSON();
-                            res.status(200).send(value1)
-                        })
-                        .catch(reason => res.status(403).send(reason));
-                    console.log(pastDate);
-                    return (orders);
+                        .select('*',
+                            Orders.query(trx)
+                                .whereBetween('start', [date2, date1])
+                                .andWhere('employeeId', req.params.employeeId)
+                                .count().as('length'));
+                    return {status: orders.length};
                 });
                 res.status(200).send(trans);
             } catch (err) {
@@ -139,23 +192,18 @@ export class OrderRouter {
         router.get('/getCostOfOrdersByEmployeeInWeek/:employeeId', async function (req, res) {
             try {
                 const trans = await transaction(Model.knex(), async (trx) => {
-                    var currentDate = new Date();
-                    var modifyDate = new Date();
-                    modifyDate.setDate((currentDate.getDate()) - 7);
-                    var pastDate = modifyDate;
+                    const currentDate = moment(new Date()).tz('America/Bogota');
+                    const date1: string = currentDate.hours(0).minutes(0).seconds(0).format('YYYY-MM-DD HH:mm:ss');
+                    const date2: string = currentDate.add(7, "days").format('YYYY-MM-DD HH:mm:ss');
 
-                    const orders: any = Orders.query(trx)
-                        .whereBetween('start', [pastDate, currentDate])
-                        .andWhere('employeeId', req.params.employeeId)
-                        .sum('total')
+                    const orders: any = await Orders.query(trx)
                         .first()
-                        .then(value => {
-                            const value1 = value.toJSON();
-                            res.status(200).send(value1)
-                        })
-                        .catch(reason => res.status(403).send(reason));
-                    console.log(pastDate);
-                    return (orders);
+                        .select('*',
+                            Orders.query(trx)
+                                .whereBetween('start', [date1, date2])
+                                .andWhere('employeeId', req.params.employeeId)
+                                .count().as('length'));
+                    return {status: orders.length};
                 });
                 res.status(200).send(trans);
             } catch (err) {
@@ -166,23 +214,18 @@ export class OrderRouter {
         router.get('/getCostOfOrdersByEmployeeInMonth/:employeeId', async function (req, res) {
             try {
                 const trans = await transaction(Model.knex(), async (trx) => {
-                    var currentDate = new Date();
-                    var modifyDate = new Date();
-                    modifyDate.setMonth((currentDate.getMonth()) - 1);
-                    var pastDate = modifyDate;
+                    const currentDate = moment(new Date()).tz('America/Bogota');
+                    const date1: string = currentDate.hours(0).minutes(0).seconds(0).format('YYYY-MM-DD HH:mm:ss');
+                    const date2: string = currentDate.add(-1, "months").format('YYYY-MM-DD HH:mm:ss');
 
-                    const orders: any = Orders.query(trx)
-                        .whereBetween('start', [pastDate, currentDate])
-                        .andWhere('employeeId', req.params.employeeId)
-                        .sum('total')
+                    const orders: any = await Orders.query(trx)
                         .first()
-                        .then(value => {
-                            const value1 = value.toJSON();
-                            res.status(200).send(value1)
-                        })
-                        .catch(reason => res.status(403).send(reason));
-                    console.log(pastDate);
-                    return (orders);
+                        .select('*',
+                            Orders.query(trx)
+                                .whereBetween('start', [date2, date1])
+                                .andWhere('employeeId', req.params.employeeId)
+                                .count().as('length'));
+                    return {status: orders.length};
                 });
                 res.status(200).send(trans);
             } catch (err) {

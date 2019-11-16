@@ -33,7 +33,7 @@ export class TableRouter {
                     await Orders.query(trx)
                             .eager('[detailsOrder, employees]')
                             .first()
-                            .whereNull('end')
+                            .whereNull('total')
                             .andWhere('tableId', table.id)
                 );
                 });
