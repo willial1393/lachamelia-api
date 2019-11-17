@@ -5,6 +5,7 @@ import {Tables} from "../models/tables";
 import {Users} from "../models/users";
 import {DetailsOrder} from "../models/detailsOrder";
 import {Products} from "../models/products";
+import {isDate} from "moment";
 
 const moment = require('moment-timezone');
 const express = require('express');
@@ -74,10 +75,12 @@ export class OrderRouter {
                         .first()
                         .where('tableId', getTable.id)
                         .whereNull('end');
-                    order.end = new Date();
-
+                    order.end = moment(new Date()).tz('America/Bogota').format('YYYY-MM-DD HH:mm:ss');
+                    order.duration = moment.utc(moment(order.end,"YYYY-MM-DD HH:mm:ss").diff(moment(order.start,"YYYY-MM-DD HH:mm:ss"))).format("HH:mm:ss")
                     return (
-                        await Orders.query(trx).updateAndFetchById(order.id, order)
+                        Orders.query(trx).updateAndFetchById(order.id, order)
+                            .then(value => res.status(200).send(value))
+                            .catch(reason => res.status(403).send(reason))
                     );
                 });
                 res.status(200).send(trans);
