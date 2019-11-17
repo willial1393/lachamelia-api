@@ -36,9 +36,9 @@ export class DetailOrderRouter {
                 const trans = await transaction(Model.knex(), async (trx) => {
 
                     const orderReturn: any = await  Orders.query(trx)
-                        .where('id', req.params.orderId)
-                        .whereNotNull('total');
-
+                        .whereNull('total')
+                        .andWhere('id', req.params.orderId)
+                        .first();
                     return (DetailsOrder.query(trx)
                         .where('orderId', orderReturn.id)
                         .eager('[products]')
