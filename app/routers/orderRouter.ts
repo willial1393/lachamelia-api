@@ -2,10 +2,8 @@ import {Orders} from "../models/orders";
 import {Model, transaction} from "objection";
 import {Employees} from "../models/employees";
 import {Tables} from "../models/tables";
-import {Users} from "../models/users";
 import {DetailsOrder} from "../models/detailsOrder";
 import {Products} from "../models/products";
-import {isDate} from "moment";
 
 const moment = require('moment-timezone');
 const express = require('express');
@@ -28,7 +26,7 @@ export class OrderRouter {
                 .catch(reason => res.status(403).send(reason));
         });
         router.post('/delete', function (req, res) {
-            Orders.query().deleteById(req.body.id).then(value => res.status(200).send('{"status":"deleted"}'))
+            Orders.query().deleteById(req.body.id).then(res.status(200).send('{"status":"deleted"}'))
                 .catch(reason => res.status(403).send(reason));
         });
         router.put('/update', function (req, res) {
@@ -60,7 +58,7 @@ export class OrderRouter {
                 res.status(403).send(JSON.stringify(err));
             }
         });
-        //Metodo para cambiar el estado de la mesa cuando se despacho el pedido
+        //Metodo para cambiar el estado de la mesa cuando se despacho el pedido, poner la duracion y la fecha de terminacion de la orden
         router.get('/name/:name', async function (req, res) {
             try {
                 const trans = await transaction(Model.knex(), async (trx) => {
@@ -68,7 +66,7 @@ export class OrderRouter {
                         .where('name', req.params.name)
                         .first();
                     getTable.status = 'Ocupado';
-                    await Tables.query(trx).updateAndFetchById(getTable.id, getTable)
+                    await Tables.query(trx).updateAndFetchById(getTable.id, getTable);
 
                     const order: any = await Orders.query(trx)
                         .eager('[detailsOrder, employees]')
@@ -76,7 +74,7 @@ export class OrderRouter {
                         .where('tableId', getTable.id)
                         .whereNull('end');
                     order.end = moment(new Date()).tz('America/Bogota').format('YYYY-MM-DD HH:mm:ss');
-                    order.duration = moment.utc(moment(order.end,"YYYY-MM-DD HH:mm:ss").diff(moment(order.start,"YYYY-MM-DD HH:mm:ss"))).format("HH:mm:ss")
+                    order.duration = moment.utc(moment(order.end,"YYYY-MM-DD HH:mm:ss").diff(moment(order.start,"YYYY-MM-DD HH:mm:ss"))).format("HH:mm:ss");;
                     return (
                         Orders.query(trx).updateAndFetchById(order.id, order)
                             .then(value => res.status(200).send(value))
@@ -89,7 +87,6 @@ export class OrderRouter {
             }
         });
 
-
         // Metodo guardar el total de la orden y cambiar el estado de la mesa
         router.post('/payOrder', async function (req, res) {
             try {
@@ -98,14 +95,14 @@ export class OrderRouter {
 
                     const orderSaved: any = await Orders.query(trx)
                         .where('id', req.body.id)
-                        .first()
+                        .first();
                     orderSaved.total = req.body.total;
-                    await Orders.query(trx).updateAndFetchById(orderSaved.id, orderSaved)
+                    await Orders.query(trx).updateAndFetchById(orderSaved.id, orderSaved);
                     const tableChanged: any = await Tables.query(trx)
                         .where('id', orderSaved.tableId)
-                        .first()
+                        .first();
                     tableChanged.status = 'Disponible';
-                    await Tables.query(trx).updateAndFetchById(tableChanged.id, tableChanged)
+                    await Tables.query(trx).updateAndFetchById(tableChanged.id, tableChanged);
 
                     return (orderSaved);
                 });
@@ -121,7 +118,7 @@ export class OrderRouter {
                 const trans = await transaction(Model.knex(), async (trx) => {
 
                     let contador = 0;
-                    const orderFull: Orders = req.body
+                    const orderFull: Orders = req.body;
                     delete req.body.detailsOrder.products;
 
                     const orderSaved: any = await Orders.query(trx)
@@ -134,8 +131,7 @@ export class OrderRouter {
                         const product: any = await Products.query(trx)
                             .where('id', req.body.detailsOrder[contador].productId)
                             .first();
-                        const precioDetalle = product.price * req.body.detailsOrder[contador].quantity;
-                        req.body.detailsOrder[contador].price = precioDetalle
+                        req.body.detailsOrder[contador].price = product.price * req.body.detailsOrder[contador].quantity;
                         await DetailsOrder.query(trx)
                             .insertAndFetch(req.body.detailsOrder[contador]);
                         contador++;
@@ -145,7 +141,7 @@ export class OrderRouter {
                         .where('id', orderSaved.tableId)
                         .first();
                     table.status = 'En cocina';
-                    await Tables.query(trx).updateAndFetchById(table.id, table)
+                    await Tables.query(trx).updateAndFetchById(table.id, table);
                     return (orderSaved);
                 });
                 res.status(200).send(trans);
