@@ -53,6 +53,26 @@ export class DetailOrderRouter {
 
 
         });
+
+        // Metodo para traer todos los detalles con sus productos segun el id de la orden
+        router.get('/getDetailsWithOrderId/:orderId', async function (req, res) {
+            try {
+                const trans = await transaction(Model.knex(), async (trx) => {
+
+                    const orderReturn: any = await  Orders.query(trx)
+                        .where('id', req.params.orderId)
+                        .first();
+                    return (DetailsOrder.query(trx)
+                        .where('orderId', orderReturn.id)
+                        .eager('[products]')
+                        .then(value => res.status(200).send(value))
+                        .catch(reason => res.status(403).send(reason)))
+                });
+                res.status(200).send(trans);
+            } catch (err) {
+                res.status(403).send(JSON.stringify(err));
+            }
+        });
         return router;
     }
 }

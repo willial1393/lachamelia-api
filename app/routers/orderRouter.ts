@@ -4,6 +4,7 @@ import {Employees} from "../models/employees";
 import {Tables} from "../models/tables";
 import {Users} from "../models/users";
 import {DetailsOrder} from "../models/detailsOrder";
+import {Products} from "../models/products";
 
 const moment = require('moment-timezone');
 const express = require('express');
@@ -127,6 +128,11 @@ export class OrderRouter {
                     while (req.body.detailsOrder[contador]){
                         req.body.detailsOrder[contador].orderId = orderSaved.id;
                         delete req.body.detailsOrder[contador].products;
+                        const product: any = await Products.query(trx)
+                            .where('id', req.body.detailsOrder[contador].productId)
+                            .first();
+                        const precioDetalle = product.price * req.body.detailsOrder[contador].quantity;
+                        req.body.detailsOrder[contador].price = precioDetalle
                         await DetailsOrder.query(trx)
                             .insertAndFetch(req.body.detailsOrder[contador]);
                         contador++;
@@ -148,15 +154,18 @@ export class OrderRouter {
         router.get('/getOrdersByEmployeeInWeek/:employeeId', async function (req, res) {
             try {
                 const trans = await transaction(Model.knex(), async (trx) => {
-                    const currentDate = moment(new Date()).tz('America/Bogota');
-                    const date1: string = currentDate.hours(0).minutes(0).seconds(0).format('YYYY-MM-DD HH:mm:ss');
-                    const date2: string = currentDate.add(7, "days").format('YYYY-MM-DD HH:mm:ss');
+                    const currentDate1 = moment(new Date()).tz('America/Bogota');
+                    const currentDate2 = moment(new Date()).tz('America/Bogota');
+                    let date1: string = currentDate1.hours(0).minutes(0).seconds(0).format('YYYY-MM-DD HH:mm:ss');
+                    let date2: string = currentDate2.hours(0).minutes(0).seconds(0).format('YYYY-MM-DD HH:mm:ss');
+                    date1 = currentDate1.add(23, "hours").add(59, "minutes").format('YYYY-MM-DD HH:mm:ss');
+                    date2 = currentDate2.add(-1, "weeks").format('YYYY-MM-DD HH:mm:ss');
 
                     const orders: any = await Orders.query(trx)
                         .first()
                         .select('*',
                             Orders.query(trx)
-                                .whereBetween('start', [date1, date2])
+                                .whereBetween('start', [date2, date1])
                                 .andWhere('employeeId', req.params.employeeId)
                                 .count().as('length'));
                     return {status: orders.length};
@@ -170,9 +179,12 @@ export class OrderRouter {
         router.get('/getOrdersByEmployeeInMonth/:employeeId', async function (req, res) {
             try {
                 const trans = await transaction(Model.knex(), async (trx) => {
-                    const currentDate = moment(new Date()).tz('America/Bogota');
-                    const date1: string = currentDate.hours(0).minutes(0).seconds(0).format('YYYY-MM-DD HH:mm:ss');
-                    const date2: string = currentDate.add(-1, "months").format('YYYY-MM-DD HH:mm:ss');
+                    const currentDate1 = moment(new Date()).tz('America/Bogota');
+                    const currentDate2 = moment(new Date()).tz('America/Bogota');
+                    let date1: string = currentDate1.hours(0).minutes(0).seconds(0).format('YYYY-MM-DD HH:mm:ss');
+                    let date2: string = currentDate2.hours(0).minutes(0).seconds(0).format('YYYY-MM-DD HH:mm:ss');
+                    date1 = currentDate1.add(23, "hours").add(59, "minutes").format('YYYY-MM-DD HH:mm:ss');
+                    date2 = currentDate2.add(-1, "months").format('YYYY-MM-DD HH:mm:ss');
 
                     const orders: any = await Orders.query(trx)
                         .first()
@@ -192,18 +204,24 @@ export class OrderRouter {
         router.get('/getCostOfOrdersByEmployeeInWeek/:employeeId', async function (req, res) {
             try {
                 const trans = await transaction(Model.knex(), async (trx) => {
-                    const currentDate = moment(new Date()).tz('America/Bogota');
-                    const date1: string = currentDate.hours(0).minutes(0).seconds(0).format('YYYY-MM-DD HH:mm:ss');
-                    const date2: string = currentDate.add(7, "days").format('YYYY-MM-DD HH:mm:ss');
+                    let contador = 0;
+                    let total = 0;
+                    const currentDate1 = moment(new Date()).tz('America/Bogota');
+                    const currentDate2 = moment(new Date()).tz('America/Bogota');
+                    let date1: string = currentDate1.hours(0).minutes(0).seconds(0).format('YYYY-MM-DD HH:mm:ss');
+                    let date2: string = currentDate2.hours(0).minutes(0).seconds(0).format('YYYY-MM-DD HH:mm:ss');
+                    date1 = currentDate1.add(23, "hours").add(59, "minutes").format('YYYY-MM-DD HH:mm:ss');
+                    date2 = currentDate2.add(-1, "weeks").format('YYYY-MM-DD HH:mm:ss');
 
                     const orders: any = await Orders.query(trx)
-                        .first()
-                        .select('*',
-                            Orders.query(trx)
-                                .whereBetween('start', [date1, date2])
-                                .andWhere('employeeId', req.params.employeeId)
-                                .count().as('length'));
-                    return {status: orders.length};
+                        .whereBetween('start', [date2, date1])
+                        .andWhere('employeeId', req.params.employeeId);
+
+                    while (orders[contador]) {
+                        total = Number(total) + Number(orders[contador].total);
+                        contador++;
+                    }
+                    return {total};
                 });
                 res.status(200).send(trans);
             } catch (err) {
@@ -214,18 +232,24 @@ export class OrderRouter {
         router.get('/getCostOfOrdersByEmployeeInMonth/:employeeId', async function (req, res) {
             try {
                 const trans = await transaction(Model.knex(), async (trx) => {
-                    const currentDate = moment(new Date()).tz('America/Bogota');
-                    const date1: string = currentDate.hours(0).minutes(0).seconds(0).format('YYYY-MM-DD HH:mm:ss');
-                    const date2: string = currentDate.add(-1, "months").format('YYYY-MM-DD HH:mm:ss');
+                    let contador = 0;
+                    let total = 0;
+                    const currentDate1 = moment(new Date()).tz('America/Bogota');
+                    const currentDate2 = moment(new Date()).tz('America/Bogota');
+                    let date1: string = currentDate1.hours(0).minutes(0).seconds(0).format('YYYY-MM-DD HH:mm:ss');
+                    let date2: string = currentDate2.hours(0).minutes(0).seconds(0).format('YYYY-MM-DD HH:mm:ss');
+                    date1 = currentDate1.add(23, "hours").add(59, "minutes").format('YYYY-MM-DD HH:mm:ss');
+                    date2 = currentDate2.add(-1, "months").format('YYYY-MM-DD HH:mm:ss');
 
                     const orders: any = await Orders.query(trx)
-                        .first()
-                        .select('*',
-                            Orders.query(trx)
                                 .whereBetween('start', [date2, date1])
-                                .andWhere('employeeId', req.params.employeeId)
-                                .count().as('length'));
-                    return {status: orders.length};
+                                .andWhere('employeeId', req.params.employeeId);
+
+                    while (orders[contador]) {
+                        total = Number(total) + Number(orders[contador].total);
+                        contador++;
+                    }
+                    return {total};
                 });
                 res.status(200).send(trans);
             } catch (err) {
