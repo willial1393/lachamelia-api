@@ -18,7 +18,8 @@ export class DetailOrderRouter {
                 .catch(reason => res.status(403).send(reason));
         });
         router.post('/insert', function (req, res) {
-            DetailsOrder.query().insertAndFetch(req.body).then(value => res.status(200).send(value))
+            DetailsOrder.query().insertAndFetch(req.body)
+                .then(value => res.status(200).send(value))
                 .catch(reason => res.status(403).send(reason));
         });
         router.post('/delete', function (req, res) {
@@ -26,6 +27,7 @@ export class DetailOrderRouter {
                 .then(value => res.status(200).send('{"status":"deleted"}'))
                 .catch(reason => res.status(403).send(reason));
         });
+
 
         // Metodo para modificar el pedido ya realizado desde la vista de mesas
         router.put('/update', async function (req, res) {
@@ -42,7 +44,6 @@ export class DetailOrderRouter {
                     return (
                         DetailsOrder.query().updateAndFetchById(detailOrderReturn.id, req.body)
                     )
-
                 });
                 res.status(200).send(trans);
             } catch (err) {
@@ -60,10 +61,7 @@ export class DetailOrderRouter {
                         .first();
                     return (DetailsOrder.query(trx)
                         .where('orderId', orderReturn.id)
-                        .eager('[products]')
-                        .then(value => res.status(200).send(value))
-                        .catch(reason => res.status(403).send(reason)))
-
+                        .eager('[products]'))
                 });
                 res.status(200).send(trans);
             } catch (err) {
@@ -80,9 +78,7 @@ export class DetailOrderRouter {
                         .first();
                     return (DetailsOrder.query(trx)
                         .where('orderId', orderReturn.id)
-                        .eager('[products]')
-                        .then(value => res.status(200).send(value))
-                        .catch(reason => res.status(403).send(reason)))
+                        .eager('[products]'))
                 });
                 res.status(200).send(trans);
             } catch (err) {

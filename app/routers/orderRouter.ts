@@ -18,13 +18,6 @@ export class OrderRouter {
                 .then(value => res.status(200).send(value))
                 .catch(reason => res.status(403).send(reason));
         });
-        router.get('/:id', function (req, res) {
-            Orders.query()
-                .findById(req.params.id)
-                .eager('[tables, employees, detailsOrder]')
-                .then(value => res.status(200).send(value))
-                .catch(reason => res.status(403).send(reason));
-        });
         router.post('/delete', function (req, res) {
             Orders.query().deleteById(req.body.id).then(res.status(200).send('{"status":"deleted"}'))
                 .catch(reason => res.status(403).send(reason));
@@ -34,6 +27,14 @@ export class OrderRouter {
                 .catch(reason => res.status(403).send(reason));
         });
 
+        // Trae la informacion de la orden segun su id
+        router.get('/:id', function (req, res) {
+            Orders.query()
+                .findById(req.params.id)
+                .eager('[tables, employees, detailsOrder]')
+                .then(value => res.status(200).send(value))
+                .catch(reason => res.status(403).send(reason));
+        });
         // Metodo para traer las ordenes atendidas diarias con el nombre del mesero
         router.get('/ordersDailyByNameOfWaiter/:name', async function (req, res) {
             try {
@@ -86,7 +87,6 @@ export class OrderRouter {
                 res.status(403).send(err);
             }
         });
-
         // Metodo guardar el total de la orden y cambiar el estado de la mesa
         router.post('/payOrder', async function (req, res) {
             try {
