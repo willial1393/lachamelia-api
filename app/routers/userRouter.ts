@@ -47,34 +47,8 @@ export class UserRouter {
         //         });
         //     });
         // });
-        router.post('/register/employee', async function (req, res) {
-            console.log(req.body);
-            await bcrypt.genSalt(saltRounds, function (err, salt) {
-                bcrypt.hash(req.body.users.password, salt, async function (err, hash) {
-                    try {
-                        const trans = await transaction(Model.knex(), async (trx) => {
-                            req.body.users.password = hash;
 
-                            const user: any = await Users.query(trx)
-                                .insertAndFetch(req.body.users);
-                            delete req.body.users;
-                            delete req.body.roles;
-                            req.body.userId = user.id;
-                            const employee: any = await Employees.query(trx)
-                                .insertAndFetch(req.body);
 
-                            return (await Employees.query(trx)
-                                .findById(employee.id)
-                                .eager('[users.roles]'));
-                        });
-                        res.status(200).send(trans);
-                    } catch (err) {
-                        res.status(403).send(err);
-                    }
-                });
-            });
-
-        });
         router.post('/login/employee', function (req, res) {
             Users.query()
                 .where('email', req.body.email)
@@ -120,6 +94,38 @@ export class UserRouter {
             } catch (err) {
                 res.status(403).send(err);
             }
+        });
+
+
+
+        //Metodo para registrar el empleado con su correspondiente usuario
+        router.post('/register/employee', async function (req, res) {
+            console.log(req.body);
+            await bcrypt.genSalt(saltRounds, function (err, salt) {
+                bcrypt.hash(req.body.users.password, salt, async function (err, hash) {
+                    try {
+                        const trans = await transaction(Model.knex(), async (trx) => {
+                            req.body.users.password = hash;
+
+                            const user: any = await Users.query(trx)
+                                .insertAndFetch(req.body.users);
+                            delete req.body.users;
+                            delete req.body.roles;
+                            req.body.userId = user.id;
+                            const employee: any = await Employees.query(trx)
+                                .insertAndFetch(req.body);
+
+                            return (await Employees.query(trx)
+                                .findById(employee.id)
+                                .eager('[users.roles]'));
+                        });
+                        res.status(200).send(trans);
+                    } catch (err) {
+                        res.status(403).send(err);
+                    }
+                });
+            });
+
         });
         return router;
     }

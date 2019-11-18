@@ -2,21 +2,16 @@ import {Tables} from "../models/tables";
 import {Model} from "objection";
 import {Orders} from "../models/orders";
 import {Employees} from "../models/employees";
+import {TypeTable} from "../models/typeTable";
 
 const {transaction} = require('objection');
-
 const moment = require('moment-timezone');
 const express = require('express');
 const router = express.Router();
 
 export class TableRouter {
     static get() {
-        router.get('/', function (req, res) {
-            Tables.query()
-                .eager('[typeTables]')
-                .then(value => res.status(200).send(value))
-                .catch(reason => res.status(403).send(reason));
-        });
+
         router.get('/:id', function (req, res) {
             Tables.query()
                 .findById(req.params.id)
@@ -32,19 +27,44 @@ export class TableRouter {
                 .then(value => res.status(200).send(value))
                 .catch(reason => res.status(403).send(reason));
         });
+
+        // Metodo para eliminar suave una tabla
+        router.post('/delete', async function (req, res) {
+            try {
+                const trans = await transaction(Model.knex(), async (trx) => {
+                    let tableReturn: any = await Tables.query(trx)
+                        .where('id', req.body.id)
+                        .first();
+                    const currentDate = moment(new Date()).tz('America/Bogota').format('YYYY-MM-DD HH:mm:ss');
+                    tableReturn.deleted = currentDate;
+
+                    return (
+                        await Tables.query(trx).updateAndFetchById(tableReturn.id, tableReturn)
+                    );
+                });
+                res.status(200).send(trans);
+            } catch (err) {
+                res.status(403).send(err);
+            }
+        });
+        //Metodo para cargar todas las mesas que no han sido eliminadas
+        router.get('/', function (req, res) {
+            Tables.query()
+                .whereNull('deleted')
+                .eager('[typeTables]')
+                .then(value => res.status(200).send(value))
+                .catch(reason => res.status(403).send(reason));
+        });
+        // Metodo para guardar una mesa
         router.post('/insert', function (req, res) {
             Tables.query().insertAndFetch(req.body).then(value => res.status(200).send(value))
                 .catch(reason => res.status(403).send(reason));
         });
-        router.post('/delete', function (req, res) {
-            Tables.query().deleteById(req.body.id).then(value => res.status(200).send('{"status":"deleted"}'))
-                .catch(reason => res.status(403).send(reason));
-        });
+        //Metodo para actualizar una mesa
         router.put('/update', function (req, res) {
             Tables.query().updateAndFetchById(req.body.id, req.body).then(value => res.status(200).send(value))
                 .catch(reason => res.status(403).send(reason));
         });
-
         // Metodo que retorna la orden que no se han terminado, usando el nombre de la mesa
         router.get('/name/:name', async function (req, res) {
             try {

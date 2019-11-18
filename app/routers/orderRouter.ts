@@ -111,7 +111,6 @@ export class OrderRouter {
                 res.status(403).send(err);
             }
         });
-
         // Metodo para guardar la orden con sus detalles y cambiar el estado de la mesa
         router.post('/insertOrderWithDetails', async function (req, res) {
             try {

@@ -1,18 +1,18 @@
 import {Employees} from "../models/employees";
+import {Model} from "objection";
+import {Users} from "../models/users";
+import {Products} from "../models/products";
 
+const {transaction} = require('objection');
+const moment = require('moment-timezone');
 const express = require('express');
 const router = express.Router();
 
 export class EmployeeRouter {
     static get() {
-        router.get('/', function (req, res) {
-            Employees.query()
-                .eager('[users.[roles]]')
-                .then(value => res.status(200).send(value))
-                .catch(reason => res.status(403).send(reason));
-        });
         router.get('/waiters', function (req, res) {
             Employees.query()
+                .whereNull('deleted')
                 .eager('[users.[roles]]')
                 .modifyEager('users.roles', builder => {
                     builder.where('name', 'Mesero')
@@ -41,22 +41,67 @@ export class EmployeeRouter {
             Employees.query().insertAndFetch(req.body).then(value => res.status(200).send(value))
                 .catch(reason => res.status(403).send(reason));
         });
-        router.post('/delete', function (req, res) {
-            Employees.query().deleteById(req.body.id).then(value => res.status(200).send('{"status":"deleted"}'))
-                .catch(reason => res.status(403).send(reason));
-        });
-        router.put('/update', function (req, res) {
-            Employees.query().updateAndFetchById(req.body.id, req.body).then(value => res.status(200).send(value))
-                .catch(reason => res.status(403).send(reason));
-        });
 
+
+        //REVISIÓN DE METODOS QUE ESTAN SIENDO USADOS
+        // Metodo para traer todos los usuarios que no han sido eliminados
+        router.get('/', function (req, res) {
+            Employees.query()
+                .whereNull('deleted')
+                .eager('[users.[roles]]')
+                .then(value => res.status(200).send(value))
+                .catch(reason => res.status(403).send(reason));
+        });
         // Metodo para traer la informacion del empleado con su nombre
         router.get('/nameWaiter/:name', async function (req, res) {
             await Employees.query()
+                .whereNull('deleted')
                 .where('name', req.params.name)
                 .first()
                 .then(value => res.status(200).send(value))
                 .catch(reason => res.status(403).send(reason));
+        });
+        // Metodo para actualizar el empleado
+        router.put('/update',  async function(req, res) {
+            try {
+                const trans = await transaction(Model.knex(), async (trx) => {
+                    const rol: any = req.body['users.roles'];
+                    delete req.body['users.roles'];
+                    delete req.body.users;
+                    const employeeUpdated: any = await Employees.query(trx).updateAndFetchById(req.body.id, req.body);
+                    let userReturn: any = await Users.query(trx).where('id', employeeUpdated.userId).first();
+                    userReturn.rolId = rol.id;
+                    await Users.query(trx).updateAndFetchById(userReturn.id, userReturn);
+                    return (employeeUpdated);
+                });
+                res.status(200).send(trans);
+            } catch (err) {
+                res.status(403).send(err);
+            }
+        });
+        // Metodo para eliminación suave del empleado
+        router.post('/delete', async function (req, res) {
+            try {
+                const trans = await transaction(Model.knex(), async (trx) => {
+                    let employeeReturn: any = await Employees.query(trx)
+                        .where('id', req.body.id)
+                        .first();
+                    const currentDate = moment(new Date()).tz('America/Bogota').format('YYYY-MM-DD HH:mm:ss');
+                    employeeReturn.deleted = currentDate;
+
+                    let userReturn: any = await Users.query(trx)
+                        .where('id', employeeReturn.userId)
+                        .first();
+                    userReturn.deleted = currentDate;
+                    await Users.query(trx).updateAndFetchById(userReturn.id, userReturn)
+                    return (
+                        await Employees.query(trx).updateAndFetchById(employeeReturn.id, employeeReturn)
+                );
+                });
+                res.status(200).send(trans);
+            } catch (err) {
+                res.status(403).send(err);
+            }
         });
         return router;
     }
