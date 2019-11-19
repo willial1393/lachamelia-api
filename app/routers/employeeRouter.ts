@@ -1,7 +1,6 @@
 import {Employees} from "../models/employees";
 import {Model} from "objection";
 import {Users} from "../models/users";
-import {Products} from "../models/products";
 
 const {transaction} = require('objection');
 const moment = require('moment-timezone');
@@ -65,13 +64,7 @@ export class EmployeeRouter {
         router.put('/update',  async function(req, res) {
             try {
                 const trans = await transaction(Model.knex(), async (trx) => {
-                    const rol: any = req.body['users.roles'];
-                    delete req.body['users.roles'];
-                    delete req.body.users;
-                    const employeeUpdated: any = await Employees.query(trx).updateAndFetchById(req.body.id, req.body);
-                    let userReturn: any = await Users.query(trx).where('id', employeeUpdated.userId).first();
-                    userReturn.rolId = rol.id;
-                    await Users.query(trx).updateAndFetchById(userReturn.id, userReturn);
+                    const employeeUpdated: any = await Employees.query(trx).upsertGraphAndFetch(req.body);
                     return (employeeUpdated);
                 });
                 res.status(200).send(trans);

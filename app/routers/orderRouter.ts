@@ -18,6 +18,38 @@ export class OrderRouter {
                 .then(value => res.status(200).send(value))
                 .catch(reason => res.status(403).send(reason));
         });
+        router.get('/week', async function (req, res) {
+            try {
+                let currentDate = moment(new Date()).hours(23).minutes(59).seconds(59);
+                const lastDate = moment(new Date()).hours(0).minutes(0).seconds(0).add(-7, "days");
+                const orders: any[] = await Orders.query()
+                    .whereNotNull('end')
+                    .whereBetween('start', [
+                        lastDate.format('YYYY-MM-DD HH:mm:ss'),
+                        currentDate.format('YYYY-MM-DD HH:mm:ss')
+                    ]);
+                const week: any[] = [];
+                for (let i = 1; i <= 7; i++) {
+                    const w: any = {
+                        date: currentDate.format('YYYY-MM-DD'),
+                        value: 0
+                    };
+                    w.value = orders
+                        .filter(value => moment(value.start, 'YYYY-MM-DD').isSame(currentDate.format('YYYY-MM-DD')));
+                    if (w.value.length !== 0) {
+                        w.value = w.value.map(value => value.total)
+                            .reduce((previousValue, currentValue) => Number(previousValue) + Number(currentValue))
+                    } else {
+                        w.value = 0;
+                    }
+                    week.push(w);
+                    currentDate.add(-1, "days");
+                }
+                res.status(200).send(week);
+            } catch (e) {
+                res.status(403).send(e);
+            }
+        });
         router.post('/delete', function (req, res) {
             Orders.query().deleteById(req.body.id).then(res.status(200).send('{"status":"deleted"}'))
                 .catch(reason => res.status(403).send(reason));
@@ -75,7 +107,8 @@ export class OrderRouter {
                         .where('tableId', getTable.id)
                         .whereNull('end');
                     order.end = moment(new Date()).tz('America/Bogota').format('YYYY-MM-DD HH:mm:ss');
-                    order.duration = moment.utc(moment(order.end,"YYYY-MM-DD HH:mm:ss").diff(moment(order.start,"YYYY-MM-DD HH:mm:ss"))).format("HH:mm:ss");;
+                    order.duration = moment.utc(moment(order.end, "YYYY-MM-DD HH:mm:ss").diff(moment(order.start, "YYYY-MM-DD HH:mm:ss"))).format("HH:mm:ss");
+                    ;
                     return (
                         Orders.query(trx).updateAndFetchById(order.id, order)
                             .then(value => res.status(200).send(value))
@@ -124,7 +157,7 @@ export class OrderRouter {
                         .insertAndFetch(orderFull);
 
 
-                    while (req.body.detailsOrder[contador]){
+                    while (req.body.detailsOrder[contador]) {
                         req.body.detailsOrder[contador].orderId = orderSaved.id;
                         delete req.body.detailsOrder[contador].products;
                         const product: any = await Products.query(trx)
@@ -240,8 +273,8 @@ export class OrderRouter {
                     date2 = currentDate2.add(-1, "months").format('YYYY-MM-DD HH:mm:ss');
 
                     const orders: any = await Orders.query(trx)
-                                .whereBetween('start', [date2, date1])
-                                .andWhere('employeeId', req.params.employeeId);
+                        .whereBetween('start', [date2, date1])
+                        .andWhere('employeeId', req.params.employeeId);
 
                     while (orders[contador]) {
                         total = Number(total) + Number(orders[contador].total);
