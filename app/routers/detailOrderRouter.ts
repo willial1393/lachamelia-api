@@ -54,14 +54,14 @@ export class DetailOrderRouter {
         router.get('/byOrderId/:orderId', async function (req, res) {
             try {
                 const trans = await transaction(Model.knex(), async (trx) => {
-
                     const orderReturn: any = await  Orders.query(trx)
                         .whereNull('total')
                         .andWhere('id', req.params.orderId)
                         .first();
-                    return (DetailsOrder.query(trx)
+                    const detailsOrder: any = await DetailsOrder.query(trx)
                         .where('orderId', orderReturn.id)
-                        .eager('[products]'))
+                        .eager('[products]')
+                    return (detailsOrder )
                 });
                 res.status(200).send(trans);
             } catch (err) {

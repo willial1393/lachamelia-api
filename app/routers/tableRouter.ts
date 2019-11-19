@@ -9,6 +9,27 @@ const router = express.Router();
 
 export class TableRouter {
     static get() {
+        // Metodo que retorna la orden que no se han terminado, usando el nombre de la mesa
+        router.get('/name/:name', async function (req, res) {
+            try {
+                const trans = await transaction(Model.knex(), async (trx) => {
+                    const table: any = await Tables.query(trx)
+                        .where('name', req.params.name)
+                        .first();
+                    const order: any = await Orders.query(trx)
+                        .whereNull('total')
+                        .andWhere('tableId', table.id)
+                        .first()
+                        .eager('[detailsOrder, employees, tables]')
+                    return (
+                        order
+                    );
+                });
+                res.status(200).send(trans);
+            } catch (err) {
+                res.status(403).send(err);
+            }
+        });
         // Metodo para eliminar suave una tabla
         router.post('/delete', async function (req, res) {
             try {
@@ -80,28 +101,6 @@ export class TableRouter {
                     return (
                         arrayTotales
                     )
-                });
-                res.status(200).send(trans);
-            } catch (err) {
-                res.status(403).send(err);
-            }
-        });
-
-        // Metodo que retorna la orden que no se han terminado, usando el nombre de la mesa
-        router.get('/name/:name', async function (req, res) {
-            try {
-                const trans = await transaction(Model.knex(), async (trx) => {
-                    const table: any = await Tables.query(trx)
-                        .where('name', req.params.name)
-                        .first();
-                    const order: any = await Orders.query(trx)
-                        .whereNull('total')
-                        .andWhere('tableId', table.id)
-                        .first()
-                        .eager('[detailsOrder, employees, tables]')
-                    return (
-                        order
-                    );
                 });
                 res.status(200).send(trans);
             } catch (err) {
