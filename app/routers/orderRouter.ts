@@ -159,31 +159,53 @@ export class OrderRouter {
             try {
                 const trans = await transaction(Model.knex(), async (trx) => {
 
-                    let contador = 0;
-                    const orderFull: Orders = req.body;
                     delete req.body.detailsOrder.products;
-
-                    const orderSaved: any = await Orders.query(trx)
-                        .insertAndFetch(orderFull);
-
+                    let contador = 0;
+                    let disponibilidadProductos = true;
+                    const orderFull: any = req.body;
+                    let orderSaved: any;
 
                     while (req.body.detailsOrder[contador]) {
-                        req.body.detailsOrder[contador].orderId = orderSaved.id;
-                        delete req.body.detailsOrder[contador].products;
-                        const product: any = await Products.query(trx)
-                            .where('id', req.body.detailsOrder[contador].productId)
-                            .first();
-                        req.body.detailsOrder[contador].price = product.price * req.body.detailsOrder[contador].quantity;
-                        await DetailsOrder.query(trx)
-                            .insertAndFetch(req.body.detailsOrder[contador]);
+                        const product: any = await Products.query(trx).findById(req.body.detailsOrder[contador].productId);
+                        if (product.quantity < req.body.detailsOrder[contador].quantity){
+                            disponibilidadProductos = false;
+                        }
                         contador++;
                     }
+                    contador=0;
 
-                    let table: any = await Tables.query(trx)
-                        .where('id', orderSaved.tableId)
-                        .first();
-                    table.status = 'En cocina';
-                    await Tables.query(trx).updateAndFetchById(table.id, table);
+                    if (disponibilidadProductos === true){
+                        while (req.body.detailsOrder[contador]) {
+                            let product: any = await Products.query(trx).findById(req.body.detailsOrder[contador].productId);
+                            let restaCantidad = Number(product.quantity) - Number(req.body.detailsOrder[contador].quantity);
+                            product.quantity = restaCantidad;
+                            await Products.query(trx).updateAndFetchById(product.id, product)
+                            contador++;
+                        }
+                        contador = 0;
+
+
+                        orderSaved = await Orders.query(trx)
+                            .insertAndFetch(orderFull);
+                        while (req.body.detailsOrder[contador]) {
+                            req.body.detailsOrder[contador].orderId = orderSaved.id;
+                            delete req.body.detailsOrder[contador].products;
+                            const product: any = await Products.query(trx)
+                                .where('id', req.body.detailsOrder[contador].productId)
+                                .first();
+                            req.body.detailsOrder[contador].price = product.price * req.body.detailsOrder[contador].quantity;
+                            let detailOr = await DetailsOrder.query(trx)
+                                .insertAndFetch(req.body.detailsOrder[contador]);
+                            contador++;
+                        }
+                        let table: any = await Tables.query(trx)
+                            .where('id', orderSaved.tableId)
+                            .first();
+                        table.status = 'En cocina';
+                        await Tables.query(trx).updateAndFetchById(table.id, table);
+                    } else{
+                        orderSaved = null;
+                    }
                     return (orderSaved);
                 });
                 res.status(200).send(trans);
