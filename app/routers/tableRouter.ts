@@ -119,17 +119,18 @@ export class TableRouter {
                 let currentDate = moment(new Date()).hours(23).minutes(59).seconds(59);
                 const lastDate = moment(new Date()).hours(0).minutes(0).seconds(0).add(-1, "months");
                 const tablesReturn: any = await  Tables.query().whereNull('deleted')
+                console.log(lastDate.format('YYYY-MM-DD HH:mm:ss'), currentDate.format('YYYY-MM-DD HH:mm:ss'));
 
                 while (tablesReturn[contadorTablas]){
-                    const orders: any[] = await Orders.query()
-                        .andWhere('tableId', tablesReturn[contadorTablas].id)
+                    let orders: any[] = await Orders.query()
+                        .where('tableId', tablesReturn[contadorTablas].id)
                         .whereNotNull('end')
                         .whereBetween('start', [
                             lastDate.format('YYYY-MM-DD HH:mm:ss'),
                             currentDate.format('YYYY-MM-DD HH:mm:ss')
                         ]);
                     while (orders[contadorOrdenes]){
-                        total = Number(total) + Number(orders[contadorOrdenes].subtotal);
+                        total = Number(total) + Number(orders[contadorOrdenes].total);
                         contadorOrdenes++;
                     }
                     monthVar = {

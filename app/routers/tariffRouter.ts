@@ -7,7 +7,6 @@ export class TariffRouter {
     static get() {
         router.get('/', function (req, res) {
             Tariffs.query()
-                .first()
                 .then(value => res.status(200).send(value))
                 .catch(reason => res.status(403).send(reason));
         });
