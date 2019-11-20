@@ -4,6 +4,7 @@ import {Employees} from "../models/employees";
 import {Tables} from "../models/tables";
 import {DetailsOrder} from "../models/detailsOrder";
 import {Products} from "../models/products";
+import {Tariffs} from "../models/tariffs";
 
 const moment = require('moment-timezone');
 const express = require('express');
@@ -37,7 +38,7 @@ export class OrderRouter {
                     w.value = orders
                         .filter(value => moment(value.start, 'YYYY-MM-DD').isSame(currentDate.format('YYYY-MM-DD')));
                     if (w.value.length !== 0) {
-                        w.value = w.value.map(value => value.total)
+                        w.value = w.value.map(value => value.subtotal)
                             .reduce((previousValue, currentValue) => Number(previousValue) + Number(currentValue))
                     } else {
                         w.value = 0;
@@ -67,6 +68,7 @@ export class OrderRouter {
                 .then(value => res.status(200).send(value))
                 .catch(reason => res.status(403).send(reason));
         });
+
         // Metodo para traer las ordenes atendidas diarias con el nombre del mesero
         router.get('/ordersDailyByNameOfWaiter/:name', async function (req, res) {
             try {
@@ -91,6 +93,7 @@ export class OrderRouter {
                 res.status(403).send(JSON.stringify(err));
             }
         });
+
         //Metodo para cambiar el estado de la mesa cuando se despacho el pedido, poner la duracion y la fecha de terminacion de la orden
         router.get('/name/:name', async function (req, res) {
             try {
@@ -120,6 +123,7 @@ export class OrderRouter {
                 res.status(403).send(err);
             }
         });
+
         // Metodo guardar el total de la orden y cambiar el estado de la mesa
         router.post('/payOrder', async function (req, res) {
             try {
@@ -129,7 +133,12 @@ export class OrderRouter {
                     const orderSaved: any = await Orders.query(trx)
                         .where('id', req.body.id)
                         .first();
-                    orderSaved.total = req.body.total;
+                    const ivaReturn: any = await Tariffs.query(trx).first()
+
+                    orderSaved.subtotal = req.body.subtotal;
+                    orderSaved.impuesto = (Number(ivaReturn.iva)/100)*(Number(req.body.subtotal))
+                    orderSaved.total = Number(orderSaved.subtotal) + Number(orderSaved.impuesto);
+
                     await Orders.query(trx).updateAndFetchById(orderSaved.id, orderSaved);
                     const tableChanged: any = await Tables.query(trx)
                         .where('id', orderSaved.tableId)
@@ -144,6 +153,7 @@ export class OrderRouter {
                 res.status(403).send(err);
             }
         });
+
         // Metodo para guardar la orden con sus detalles y cambiar el estado de la mesa
         router.post('/insertOrderWithDetails', async function (req, res) {
             try {
@@ -181,6 +191,7 @@ export class OrderRouter {
                 res.status(403).send(err);
             }
         });
+
         //Metodo para regresar la cantidad de mesas atendidas por el id del mesero en una semana
         router.get('/getOrdersByEmployeeInWeek/:employeeId', async function (req, res) {
             try {
@@ -206,6 +217,7 @@ export class OrderRouter {
                 res.status(403).send(err);
             }
         });
+
         //Metodo para regresar la cantidad de mesas atendidas por el id del mesero en una mes
         router.get('/getOrdersByEmployeeInMonth/:employeeId', async function (req, res) {
             try {
@@ -231,6 +243,7 @@ export class OrderRouter {
                 res.status(403).send(err);
             }
         });
+
         //Metodo para regresar las ganancias totales de las ordenes por mesero en una semana
         router.get('/getCostOfOrdersByEmployeeInWeek/:employeeId', async function (req, res) {
             try {
@@ -249,7 +262,7 @@ export class OrderRouter {
                         .andWhere('employeeId', req.params.employeeId);
 
                     while (orders[contador]) {
-                        total = Number(total) + Number(orders[contador].total);
+                        total = Number(total) + Number(orders[contador].subtotal);
                         contador++;
                     }
                     return {total};
@@ -259,6 +272,7 @@ export class OrderRouter {
                 res.status(403).send(err);
             }
         });
+
         //Metodo para regresar las ganancias totales de las ordenes por mesero en un mes
         router.get('/getCostOfOrdersByEmployeeInMonth/:employeeId', async function (req, res) {
             try {
@@ -277,7 +291,7 @@ export class OrderRouter {
                         .andWhere('employeeId', req.params.employeeId);
 
                     while (orders[contador]) {
-                        total = Number(total) + Number(orders[contador].total);
+                        total = Number(total) + Number(orders[contador].subtotal);
                         contador++;
                     }
                     return {total};

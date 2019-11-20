@@ -17,10 +17,22 @@ export class DetailOrderRouter {
                 .then(value => res.status(200).send(value))
                 .catch(reason => res.status(403).send(reason));
         });
-        router.post('/insert', function (req, res) {
-            DetailsOrder.query().insertAndFetch(req.body)
-                .then(value => res.status(200).send(value))
-                .catch(reason => res.status(403).send(reason));
+        router.post('/insert', async function (req, res) {
+            try {
+                const trans = await transaction(Model.knex(), async (trx) => {
+                    delete req.body.products
+                    const productReturn: any = await  Products.query(trx)
+                        .where('id', req.body.productId)
+                        .first();
+                    req.body.price = (productReturn.price * req.body.quantity);
+                    return (
+                        DetailsOrder.query(trx).insertAndFetch(req.body)
+                    )
+                });
+                res.status(200).send(trans);
+            } catch (err) {
+                res.status(403).send(JSON.stringify(err));
+            }
         });
         router.post('/delete', function (req, res) {
             DetailsOrder.query().deleteById(req.body.id)
@@ -41,8 +53,9 @@ export class DetailOrderRouter {
                         .where('id', req.body.productId)
                         .first();
                     req.body.price = (productReturn.price * req.body.quantity);
+                    console.log(req.body);
                     return (
-                        DetailsOrder.query().updateAndFetchById(detailOrderReturn.id, req.body)
+                        DetailsOrder.query(trx).updateAndFetchById(req.body.id, req.body)
                     )
                 });
                 res.status(200).send(trans);

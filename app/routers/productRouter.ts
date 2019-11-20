@@ -28,7 +28,7 @@ export class ProductRouter {
             Products.query().insertAndFetch(req.body).then(value => res.status(200).send(value))
                 .catch(reason => res.status(403).send(reason));
         });
-        // Metodo para actualizar un producto
+        // Metodo para eliminar suave un producto
         router.post('/delete', async function (req, res) {
             try {
                 const trans = await transaction(Model.knex(), async (trx) => {
@@ -49,7 +49,7 @@ export class ProductRouter {
                 res.status(403).send(err);
             }
         });
-        // Metodo para eliminar suave un producto
+        // Metodo para actualizar un producto
         router.put('/update', function (req, res) {
             Products.query().updateAndFetchById(req.body.id, req.body).then(value => res.status(200).send(value))
                 .catch(reason => res.status(403).send(reason));

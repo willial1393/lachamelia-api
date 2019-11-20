@@ -8,6 +8,7 @@ import {TableRouter} from "./routers/tableRouter";
 import {OrderRouter} from "./routers/orderRouter";
 import {RolRouter} from "./routers/rolRouter";
 import {TypeTableRouter} from "./routers/typeTableRouter";
+import {TariffRouter} from "./routers/tariffRouter";
 
 const bodyParser = require('body-parser');
 const {Model} = require('objection');
@@ -44,6 +45,7 @@ app.use('/user', UserRouter.get());
 app.use('/employee', EmployeeRouter.get());
 app.use('/rol', RolRouter.get());
 app.use('/typeTable', TypeTableRouter.get());
+app.use('/tariff', TariffRouter.get());
 
 app.listen(3000, function () {
     console.log('http://localhost:3000/');

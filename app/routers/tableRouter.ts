@@ -85,12 +85,13 @@ export class TableRouter {
                     let date2: string = currentDate2.hours(0).minutes(0).seconds(0).format('YYYY-MM-DD HH:mm:ss');
                     date1 = currentDate1.add(-1, "months").format('YYYY-MM-DD HH:mm:ss');
                     const tablesReturn: any = await  Tables.query(trx).whereNull('deleted')
+
                     while (tablesReturn[contadorTablas]) {
                         const orders: any = await Orders.query(trx)
                             .whereBetween('start', [date1, date2])
                             .andWhere('tableId', tablesReturn[contadorTablas].id);
                         while (orders[contadorOrdenes]){
-                            total = Number(total) + Number(orders[contadorOrdenes].total);
+                            total = Number(total) + Number(orders[contadorOrdenes].subtotal);
                             contadorOrdenes++;
                         }
                         arrayTotales[contadorTablas] = total;
@@ -105,6 +106,44 @@ export class TableRouter {
                 res.status(200).send(trans);
             } catch (err) {
                 res.status(403).send(err);
+            }
+        });
+
+        router.get('/month', async function (req, res) {
+            try {
+                const month: any[] = [];
+                let monthVar: any;
+                let contadorTablas = 0;
+                let contadorOrdenes = 0;
+                let total = 0;
+                let currentDate = moment(new Date()).hours(23).minutes(59).seconds(59);
+                const lastDate = moment(new Date()).hours(0).minutes(0).seconds(0).add(-1, "months");
+                const tablesReturn: any = await  Tables.query().whereNull('deleted')
+
+                while (tablesReturn[contadorTablas]){
+                    const orders: any[] = await Orders.query()
+                        .andWhere('tableId', tablesReturn[contadorTablas].id)
+                        .whereNotNull('end')
+                        .whereBetween('start', [
+                            lastDate.format('YYYY-MM-DD HH:mm:ss'),
+                            currentDate.format('YYYY-MM-DD HH:mm:ss')
+                        ]);
+                    while (orders[contadorOrdenes]){
+                        total = Number(total) + Number(orders[contadorOrdenes].subtotal);
+                        contadorOrdenes++;
+                    }
+                    monthVar = {
+                        nameTable: tablesReturn[contadorTablas].name,
+                        totalTable: total
+                    };
+                    month.push(monthVar);
+                    contadorOrdenes = 0;
+                    total = 0;
+                    contadorTablas++;
+                }
+                res.status(200).send(month);
+            } catch (e) {
+                res.status(403).send(e);
             }
         });
 
@@ -142,7 +181,7 @@ export class TableRouter {
             try {
                 const trans = await transaction(Model.knex(), async (trx) => {
                     let contador = 0;
-                    let total = 0;
+                    let subtotal = 0;
                     const currentDate1 = moment(new Date()).tz('America/Bogota');
                     const currentDate2 = moment(new Date()).tz('America/Bogota');
                     let date1: string = currentDate1.hours(0).minutes(0).seconds(0).format('YYYY-MM-DD HH:mm:ss');
@@ -158,10 +197,10 @@ export class TableRouter {
                         .andWhere('tableId', tableReturn.id);
 
                     while (orders[contador]) {
-                        total = Number(total) + Number(orders[contador].total);
+                        subtotal = Number(subtotal) + Number(orders[contador].subtotal);
                         contador++;
                     }
-                    return {total};
+                    return {subtotal};
                 });
                 res.status(200).send(trans);
             } catch (err) {
