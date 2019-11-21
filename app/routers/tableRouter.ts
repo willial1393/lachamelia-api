@@ -109,45 +109,6 @@ export class TableRouter {
             }
         });
 
-        router.get('/month', async function (req, res) {
-            try {
-                const month: any[] = [];
-                let monthVar: any;
-                let contadorTablas = 0;
-                let contadorOrdenes = 0;
-                let total = 0;
-                let currentDate = moment(new Date()).hours(23).minutes(59).seconds(59);
-                const lastDate = moment(new Date()).hours(0).minutes(0).seconds(0).add(-1, "months");
-                const tablesReturn: any = await  Tables.query().whereNull('deleted')
-                console.log(lastDate.format('YYYY-MM-DD HH:mm:ss'), currentDate.format('YYYY-MM-DD HH:mm:ss'));
-
-                while (tablesReturn[contadorTablas]){
-                    let orders: any[] = await Orders.query()
-                        .where('tableId', tablesReturn[contadorTablas].id)
-                        .whereNotNull('end')
-                        .whereBetween('start', [
-                            lastDate.format('YYYY-MM-DD HH:mm:ss'),
-                            currentDate.format('YYYY-MM-DD HH:mm:ss')
-                        ]);
-                    while (orders[contadorOrdenes]){
-                        total = Number(total) + Number(orders[contadorOrdenes].total);
-                        contadorOrdenes++;
-                    }
-                    monthVar = {
-                        nameTable: tablesReturn[contadorTablas].name,
-                        totalTable: total
-                    };
-                    month.push(monthVar);
-                    contadorOrdenes = 0;
-                    total = 0;
-                    contadorTablas++;
-                }
-                res.status(200).send(month);
-            } catch (e) {
-                res.status(403).send(e);
-            }
-        });
-
         //Metodo para traer la cantidad de ordenes diarias segun el nombre de la mesa
         router.get('/quantityOrdersDairysByTable/:name', async function (req, res) {
             try {

@@ -5,6 +5,7 @@ import {Tables} from "../models/tables";
 import {DetailsOrder} from "../models/detailsOrder";
 import {Products} from "../models/products";
 import {Tariffs} from "../models/tariffs";
+import {Categories} from "../models/categories";
 
 const moment = require('moment-timezone');
 const express = require('express');
@@ -33,15 +34,24 @@ export class OrderRouter {
                 for (let i = 1; i <= 7; i++) {
                     const w: any = {
                         date: currentDate.format('YYYY-MM-DD'),
-                        value: 0
+                        value: 0,
+                        value1: 0
                     };
                     w.value = orders
                         .filter(value => moment(value.start, 'YYYY-MM-DD').isSame(currentDate.format('YYYY-MM-DD')));
                     if (w.value.length !== 0) {
                         w.value = w.value.map(value => value.total)
-                            .reduce((previousValue, currentValue) => Number(previousValue) + Number(currentValue))
+                            .reduce((previousValue, currentValue) => Number(previousValue) + Number(currentValue));
                     } else {
                         w.value = 0;
+                    }
+                    w.value1 = orders
+                        .filter(value1 => moment(value1.start, 'YYYY-MM-DD').isSame(currentDate.format('YYYY-MM-DD')));
+                    if (w.value1.length !== 0) {
+                        w.value1 = w.value1.map(value1 => value1.ganancias)
+                            .reduce((previousValue, currentValue) => Number(previousValue) + Number(currentValue));
+                    } else {
+                        w.value1 = 0;
                     }
                     week.push(w);
                     currentDate.add(-1, "days");
@@ -51,6 +61,38 @@ export class OrderRouter {
                 res.status(403).send(e);
             }
         });
+        router.get('/month', async function (req, res) {
+            try {
+                let contadorProductos = 0;
+                let arrayCantidad: any[] = [];
+                let contadorArray = 0;
+                let cant: any;
+                let currentDate = moment(new Date()).hours(23).minutes(59).seconds(59);
+                const lastDate = moment(new Date()).hours(0).minutes(0).seconds(0).add(-1, "months");
+
+                const products: any = await Products.query();
+
+                while (products[contadorProductos]) {
+                    cant = await DetailsOrder.query()
+                        .first()
+                        .select('*',
+                            DetailsOrder.query()
+                                .where('productId', products[contadorProductos].id)
+                                .count().as('quantity'));
+
+                    arrayCantidad[contadorArray] = {
+                        nameProduct: products[contadorProductos].name,
+                        cantidad: cant.quantity
+                    };
+                    contadorProductos++;
+                    contadorArray++;
+                }
+                res.status(200).send(arrayCantidad);
+            } catch (e) {
+                res.status(403).send(e);
+            }
+        });
+
         router.post('/delete', function (req, res) {
             Orders.query().deleteById(req.body.id).then(res.status(200).send('{"status":"deleted"}'))
                 .catch(reason => res.status(403).send(reason));
@@ -136,8 +178,9 @@ export class OrderRouter {
                     const ivaReturn: any = await Tariffs.query(trx).first()
 
                     orderSaved.subtotal = req.body.subtotal;
-                    orderSaved.impuesto = (Number(ivaReturn.iva)/100)*(Number(req.body.subtotal))
+                    orderSaved.impuesto = (Number(ivaReturn.iva)/100)*(Number(req.body.subtotal));
                     orderSaved.total = Number(orderSaved.subtotal) + Number(orderSaved.impuesto);
+                    orderSaved.ganancias = (Number(ivaReturn.porcentajeGanancia)/100)*(Number(req.body.subtotal));
 
                     await Orders.query(trx).updateAndFetchById(orderSaved.id, orderSaved);
                     const tableChanged: any = await Tables.query(trx)
