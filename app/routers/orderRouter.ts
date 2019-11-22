@@ -5,7 +5,6 @@ import {Tables} from "../models/tables";
 import {DetailsOrder} from "../models/detailsOrder";
 import {Products} from "../models/products";
 import {Tariffs} from "../models/tariffs";
-import {Categories} from "../models/categories";
 
 const moment = require('moment-timezone');
 const express = require('express');
@@ -78,7 +77,10 @@ export class OrderRouter {
                         .select('*',
                             DetailsOrder.query()
                                 .where('productId', products[contadorProductos].id)
-                                .count().as('quantity'));
+                                .count().as('quantity'))
+                        .orderBy('quantity', 'desc');
+
+
 
                     arrayCantidad[contadorArray] = {
                         nameProduct: products[contadorProductos].name,
@@ -152,8 +154,7 @@ export class OrderRouter {
                         .where('tableId', getTable.id)
                         .whereNull('end');
                     order.end = moment(new Date()).tz('America/Bogota').format('YYYY-MM-DD HH:mm:ss');
-                    order.duration = moment.utc(moment(order.end, "YYYY-MM-DD HH:mm:ss").diff(moment(order.start, "YYYY-MM-DD HH:mm:ss"))).format("HH:mm:ss");
-                    ;
+                    order.duration = moment.utc(moment(order.end, "YYYY-MM-DD HH:mm:ss").diff(moment(order.start, "YYYY-MM-DD HH:mm:ss"))).format("HH:mm:ss");;
                     return (
                         Orders.query(trx).updateAndFetchById(order.id, order)
                             .then(value => res.status(200).send(value))
@@ -175,7 +176,7 @@ export class OrderRouter {
                     const orderSaved: any = await Orders.query(trx)
                         .where('id', req.body.id)
                         .first();
-                    const ivaReturn: any = await Tariffs.query(trx).first()
+                    const ivaReturn: any = await Tariffs.query(trx).first();
 
                     orderSaved.subtotal = req.body.subtotal;
                     orderSaved.impuesto = (Number(ivaReturn.iva)/100)*(Number(req.body.subtotal));
@@ -220,9 +221,8 @@ export class OrderRouter {
                     if (disponibilidadProductos === true){
                         while (req.body.detailsOrder[contador]) {
                             let product: any = await Products.query(trx).findById(req.body.detailsOrder[contador].productId);
-                            let restaCantidad = Number(product.quantity) - Number(req.body.detailsOrder[contador].quantity);
-                            product.quantity = restaCantidad;
-                            await Products.query(trx).updateAndFetchById(product.id, product)
+                            product.quantity = Number(product.quantity) - Number(req.body.detailsOrder[contador].quantity);
+                            await Products.query(trx).updateAndFetchById(product.id, product);
                             contador++;
                         }
                         contador = 0;
@@ -237,7 +237,7 @@ export class OrderRouter {
                                 .where('id', req.body.detailsOrder[contador].productId)
                                 .first();
                             req.body.detailsOrder[contador].price = product.price * req.body.detailsOrder[contador].quantity;
-                            let detailOr = await DetailsOrder.query(trx)
+                            await DetailsOrder.query(trx)
                                 .insertAndFetch(req.body.detailsOrder[contador]);
                             contador++;
                         }
