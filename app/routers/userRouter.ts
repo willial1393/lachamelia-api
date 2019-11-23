@@ -58,6 +58,7 @@ export class UserRouter {
                         if (value1) {
                             Employees.query()
                                 .eager('[users.roles]')
+                                .whereNull('deleted')
                                 .where('userId', value.id)
                                 .first()
                                 .then(value2 => {

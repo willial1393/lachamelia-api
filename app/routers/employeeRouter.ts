@@ -96,6 +96,13 @@ export class EmployeeRouter {
                 res.status(403).send(err);
             }
         });
+        router.get('/id/:id', function (req, res) {
+            Employees.query()
+                .findById(req.params.id)
+                .whereNull('deleted')
+                .then(value => res.status(200).send(value))
+                .catch(reason => res.status(403).send(reason));
+        });
         return router;
     }
 }
