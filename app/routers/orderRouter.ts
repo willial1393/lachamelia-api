@@ -69,7 +69,7 @@ export class OrderRouter {
                 let currentDate = moment(new Date()).hours(23).minutes(59).seconds(59);
                 const lastDate = moment(new Date()).hours(0).minutes(0).seconds(0).add(-1, "months");
 
-                const products: any = await Products.query();
+                const products: any = await Products.query().whereNull('deleted');
 
                 while (products[contadorProductos]) {
                     cant = await DetailsOrder.query()
@@ -181,6 +181,38 @@ export class OrderRouter {
                     orderSaved.subtotal = req.body.subtotal;
                     orderSaved.impuesto = (Number(ivaReturn.iva)/100)*(Number(req.body.subtotal));
                     orderSaved.total = Number(orderSaved.subtotal) + Number(orderSaved.impuesto);
+                    orderSaved.ganancias = (Number(ivaReturn.porcentajeGanancia)/100)*(Number(req.body.subtotal));
+
+                    await Orders.query(trx).updateAndFetchById(orderSaved.id, orderSaved);
+                    const tableChanged: any = await Tables.query(trx)
+                        .where('id', orderSaved.tableId)
+                        .first();
+                    tableChanged.status = 'Disponible';
+                    await Tables.query(trx).updateAndFetchById(tableChanged.id, tableChanged);
+
+                    return (orderSaved);
+                });
+                res.status(200).send(trans);
+            } catch (err) {
+                res.status(403).send(err);
+            }
+        });
+
+        // Metodo guardar el total de la orden y cambiar el estado de la mesa
+        router.post('/payOrderWithDeduction', async function (req, res) {
+            try {
+                const trans = await transaction(Model.knex(), async (trx) => {
+                    delete req.body.detailsOrder;
+
+                    const orderSaved: any = await Orders.query(trx)
+                        .where('id', req.body.id)
+                        .first();
+                    const ivaReturn: any = await Tariffs.query(trx).first();
+
+                    orderSaved.subtotal = req.body.subtotal;
+                    orderSaved.descuento = (Number(ivaReturn.deduction)/100)*(Number(req.body.subtotal));
+                    orderSaved.impuesto = (Number(ivaReturn.iva)/100)*(Number(req.body.subtotal));
+                    orderSaved.total = Number(orderSaved.subtotal) + Number(orderSaved.impuesto) - Number(orderSaved.descuento);
                     orderSaved.ganancias = (Number(ivaReturn.porcentajeGanancia)/100)*(Number(req.body.subtotal));
 
                     await Orders.query(trx).updateAndFetchById(orderSaved.id, orderSaved);
