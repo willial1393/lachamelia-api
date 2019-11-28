@@ -44,6 +44,7 @@ export class OrderRouter {
                     } else {
                         w.value = 0;
                     }
+
                     w.value1 = orders
                         .filter(value1 => moment(value1.start, 'YYYY-MM-DD').isSame(currentDate.format('YYYY-MM-DD')));
                     if (w.value1.length !== 0) {
@@ -179,9 +180,10 @@ export class OrderRouter {
                     const ivaReturn: any = await Tariffs.query(trx).first();
 
                     orderSaved.subtotal = req.body.subtotal;
+                    orderSaved.cost = req.body.cost;
+                    orderSaved.ganancias = Number(orderSaved.subtotal) - Number(orderSaved.cost);
                     orderSaved.impuesto = (Number(ivaReturn.iva)/100)*(Number(req.body.subtotal));
                     orderSaved.total = Number(orderSaved.subtotal) + Number(orderSaved.impuesto);
-                    orderSaved.ganancias = (Number(ivaReturn.porcentajeGanancia)/100)*(Number(req.body.subtotal));
 
                     await Orders.query(trx).updateAndFetchById(orderSaved.id, orderSaved);
                     const tableChanged: any = await Tables.query(trx)
@@ -268,7 +270,9 @@ export class OrderRouter {
                             const product: any = await Products.query(trx)
                                 .where('id', req.body.detailsOrder[contador].productId)
                                 .first();
+                            console.log(product)
                             req.body.detailsOrder[contador].price = product.price * req.body.detailsOrder[contador].quantity;
+                            req.body.detailsOrder[contador].cost = product.cost * req.body.detailsOrder[contador].quantity;
                             await DetailsOrder.query(trx)
                                 .insertAndFetch(req.body.detailsOrder[contador]);
                             contador++;

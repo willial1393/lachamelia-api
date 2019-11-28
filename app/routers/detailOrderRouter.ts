@@ -21,23 +21,41 @@ export class DetailOrderRouter {
             try {
                 const trans = await transaction(Model.knex(), async (trx) => {
                     delete req.body.products
+                    let detailReturn: any;
                     const productReturn: any = await  Products.query(trx)
                         .where('id', req.body.productId)
                         .first();
-                    req.body.price = (productReturn.price * req.body.quantity);
+                    if (productReturn.quantity >= req.body.quantity) {
+                        req.body.price = (productReturn.price * req.body.quantity);
+                        req.body.cost = (productReturn.cost * req.body.quantity);
+                        detailReturn = await DetailsOrder.query(trx).insertAndFetch(req.body)
+                        productReturn.quantity = Number(productReturn.quantity) - Number(req.body.quantity);
+                        await Products.query(trx).updateAndFetchById(productReturn.id, productReturn);
+                    }
                     return (
-                        DetailsOrder.query(trx).insertAndFetch(req.body)
+                        detailReturn
                     )
+                });
+            } catch (err) {
+
+            }
+        });
+        router.post('/delete', async function (req, res) {
+            try {
+                const trans = await transaction(Model.knex(), async (trx) => {
+                    const productReturn: any = await  Products.query(trx)
+                        .findById(req.body.productId)
+                        .first();
+                    productReturn.quantity = Number(productReturn.quantity) + Number(req.body.quantity);
+                    await Products.query(trx).updateAndFetchById(productReturn.id, productReturn);
+                    return (DetailsOrder.query(trx).deleteById(req.body.id)
+                        .then(value => res.status(200).send('{"status":"deleted"}'))
+                        .catch(reason => res.status(403).send(reason)) )
                 });
                 res.status(200).send(trans);
             } catch (err) {
                 res.status(403).send(JSON.stringify(err));
             }
-        });
-        router.post('/delete', function (req, res) {
-            DetailsOrder.query().deleteById(req.body.id)
-                .then(value => res.status(200).send('{"status":"deleted"}'))
-                .catch(reason => res.status(403).send(reason));
         });
 
 
@@ -45,17 +63,27 @@ export class DetailOrderRouter {
         router.put('/update', async function (req, res) {
             try {
                 const trans = await transaction(Model.knex(), async (trx) => {
-                    const detailOrderReturn: any = await  DetailsOrder.query(trx)
-                        .where('id', req.body.id)
-                        .first();
-                    delete  req.body.products;
+                    delete req.body.products
+                    let detailReturn: any;
                     const productReturn: any = await  Products.query(trx)
                         .where('id', req.body.productId)
                         .first();
-                    req.body.price = (productReturn.price * req.body.quantity);
-                    console.log(req.body);
+                    const detailOrderReturn: any = await  DetailsOrder.query(trx)
+                        .where('id', req.body.id)
+                        .first();
+
+                    productReturn.quantity = Number(productReturn.quantity) + Number(detailOrderReturn.quantity);
+                    if (productReturn.quantity >= req.body.quantity) {
+                        productReturn.quantity = Number(productReturn.quantity) - Number(req.body.quantity);
+                        await Products.query(trx).updateAndFetchById(productReturn.id, productReturn);
+
+
+                        req.body.price = (productReturn.price * req.body.quantity);
+                        req.body.cost = (productReturn.cost * req.body.quantity);
+                        detailReturn = await DetailsOrder.query(trx).updateAndFetchById(req.body.id, req.body);
+                    }
                     return (
-                        DetailsOrder.query(trx).updateAndFetchById(req.body.id, req.body)
+                        detailReturn
                     )
                 });
                 res.status(200).send(trans);
