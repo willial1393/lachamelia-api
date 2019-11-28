@@ -180,11 +180,14 @@ export class OrderRouter {
                     const ivaReturn: any = await Tariffs.query(trx).first();
 
                     orderSaved.subtotal = req.body.subtotal;
+
                     orderSaved.cost = req.body.cost;
-                    orderSaved.ganancias = Number(orderSaved.subtotal) - Number(orderSaved.cost);
+                    orderSaved.descuento = Number(req.body.descuento) ;
+                    orderSaved.ganancias = Number(orderSaved.subtotal) - Number(orderSaved.cost) - Number(orderSaved.descuento);
+                    orderSaved.total = Number(orderSaved.subtotal) - Number(orderSaved.descuento);
+
                     //orderSaved.impuesto = (Number(ivaReturn.iva)/100)*(Number(req.body.subtotal));
                     //orderSaved.total = Number(orderSaved.subtotal) + Number(orderSaved.impuesto);
-                    orderSaved.total = Number(orderSaved.subtotal);
 
                     await Orders.query(trx).updateAndFetchById(orderSaved.id, orderSaved);
                     const tableChanged: any = await Tables.query(trx)
