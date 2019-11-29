@@ -198,9 +198,7 @@ export class OrderRouter {
 
                     return (orderSaved);
                 });
-                res.status(200).send(trans);
             } catch (err) {
-                res.status(403).send(err);
             }
         });
 
