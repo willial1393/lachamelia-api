@@ -4,7 +4,6 @@ import {Employees} from "../models/employees";
 import {Tables} from "../models/tables";
 import {DetailsOrder} from "../models/detailsOrder";
 import {Products} from "../models/products";
-import {Tariffs} from "../models/tariffs";
 
 const moment = require('moment-timezone');
 const express = require('express');
@@ -67,8 +66,8 @@ export class OrderRouter {
                 let arrayCantidad: any[] = [];
                 let contadorArray = 0;
                 let cant: any;
-                let currentDate = moment(new Date()).hours(23).minutes(59).seconds(59);
-                const lastDate = moment(new Date()).hours(0).minutes(0).seconds(0).add(-1, "months");
+                // let currentDate = moment(new Date()).hours(23).minutes(59).seconds(59);
+                // const lastDate = moment(new Date()).hours(0).minutes(0).seconds(0).add(-1, "months");
 
                 const products: any = await Products.query().whereNull('deleted');
 
@@ -155,7 +154,7 @@ export class OrderRouter {
                         .where('tableId', getTable.id)
                         .whereNull('end');
                     order.end = moment(new Date()).tz('America/Bogota').format('YYYY-MM-DD HH:mm:ss');
-                    order.duration = moment.utc(moment(order.end, "YYYY-MM-DD HH:mm:ss").diff(moment(order.start, "YYYY-MM-DD HH:mm:ss"))).format("HH:mm:ss");;
+                    order.duration = moment.utc(moment(order.end, "YYYY-MM-DD HH:mm:ss").diff(moment(order.start, "YYYY-MM-DD HH:mm:ss"))).format("HH:mm:ss");
                     return (
                         Orders.query(trx).updateAndFetchById(order.id, order)
                             .then(value => res.status(200).send(value))
@@ -174,10 +173,10 @@ export class OrderRouter {
                 const trans = await transaction(Model.knex(), async (trx) => {
                     delete req.body.detailsOrder;
 
-                    const orderSaved: any = await Orders.query(trx)
+                    let orderSaved: any = await Orders.query(trx)
                         .where('id', req.body.id)
                         .first();
-                    const ivaReturn: any = await Tariffs.query(trx).first();
+                    // const ivaReturn: any = await Tariffs.query(trx).first();
 
                     orderSaved.subtotal = req.body.subtotal;
 
@@ -189,44 +188,13 @@ export class OrderRouter {
                     //orderSaved.impuesto = (Number(ivaReturn.iva)/100)*(Number(req.body.subtotal));
                     //orderSaved.total = Number(orderSaved.subtotal) + Number(orderSaved.impuesto);
 
-                    await Orders.query(trx).updateAndFetchById(orderSaved.id, orderSaved);
+                    orderSaved = await Orders.query(trx).updateAndFetchById(orderSaved.id, orderSaved);
                     const tableChanged: any = await Tables.query(trx)
                         .where('id', orderSaved.tableId)
                         .first();
                     tableChanged.status = 'Disponible';
                     await Tables.query(trx).updateAndFetchById(tableChanged.id, tableChanged);
-
-                    return (orderSaved);
-                });
-            } catch (err) {
-            }
-        });
-
-        // Metodo guardar el total de la orden y cambiar el estado de la mesa
-        router.post('/payOrderWithDeduction', async function (req, res) {
-            try {
-                const trans = await transaction(Model.knex(), async (trx) => {
-                    delete req.body.detailsOrder;
-
-                    const orderSaved: any = await Orders.query(trx)
-                        .where('id', req.body.id)
-                        .first();
-                    const ivaReturn: any = await Tariffs.query(trx).first();
-
-                    orderSaved.subtotal = req.body.subtotal;
-                    orderSaved.descuento = (Number(ivaReturn.deduction)/100)*(Number(req.body.subtotal));
-                    orderSaved.impuesto = (Number(ivaReturn.iva)/100)*(Number(req.body.subtotal));
-                    orderSaved.total = Number(orderSaved.subtotal) + Number(orderSaved.impuesto) - Number(orderSaved.descuento);
-                    orderSaved.ganancias = (Number(ivaReturn.porcentajeGanancia)/100)*(Number(req.body.subtotal));
-
-                    await Orders.query(trx).updateAndFetchById(orderSaved.id, orderSaved);
-                    const tableChanged: any = await Tables.query(trx)
-                        .where('id', orderSaved.tableId)
-                        .first();
-                    tableChanged.status = 'Disponible';
-                    await Tables.query(trx).updateAndFetchById(tableChanged.id, tableChanged);
-
-                    return (orderSaved);
+                    return (orderSaved)
                 });
                 res.status(200).send(trans);
             } catch (err) {
@@ -272,7 +240,6 @@ export class OrderRouter {
                             const product: any = await Products.query(trx)
                                 .where('id', req.body.detailsOrder[contador].productId)
                                 .first();
-                            console.log(product)
                             req.body.detailsOrder[contador].price = product.price * req.body.detailsOrder[contador].quantity;
                             req.body.detailsOrder[contador].cost = product.cost * req.body.detailsOrder[contador].quantity;
                             await DetailsOrder.query(trx)
@@ -295,16 +262,26 @@ export class OrderRouter {
             }
         });
 
+        // Metodo para guardar la orden con sus detalles y cambiar el estado de la mesa
+        router.post('/saveOrderWithDescount', async function (req, res) {
+            try {
+                const trans = await transaction(Model.knex(), async (trx) => {
+                   return  (await Orders.query(trx).updateAndFetchById(req.body.id, req.body))
+                });
+                res.status(200).send(trans);
+            } catch (err) {
+                res.status(403).send(err);
+            }
+        });
+
         //Metodo para regresar la cantidad de mesas atendidas por el id del mesero en una semana
         router.get('/getOrdersByEmployeeInWeek/:employeeId', async function (req, res) {
             try {
                 const trans = await transaction(Model.knex(), async (trx) => {
                     const currentDate1 = moment(new Date()).tz('America/Bogota');
                     const currentDate2 = moment(new Date()).tz('America/Bogota');
-                    let date1: string = currentDate1.hours(0).minutes(0).seconds(0).format('YYYY-MM-DD HH:mm:ss');
-                    let date2: string = currentDate2.hours(0).minutes(0).seconds(0).format('YYYY-MM-DD HH:mm:ss');
-                    date1 = currentDate1.add(23, "hours").add(59, "minutes").format('YYYY-MM-DD HH:mm:ss');
-                    date2 = currentDate2.add(-1, "weeks").format('YYYY-MM-DD HH:mm:ss');
+                    let date1: string = currentDate1.add(23, "hours").add(59, "minutes").hours(0).minutes(0).seconds(0).format('YYYY-MM-DD HH:mm:ss');
+                    let date2: string = currentDate2.add(-1, "weeks").hours(0).minutes(0).seconds(0).format('YYYY-MM-DD HH:mm:ss');
 
                     const orders: any = await Orders.query(trx)
                         .first()
@@ -327,10 +304,8 @@ export class OrderRouter {
                 const trans = await transaction(Model.knex(), async (trx) => {
                     const currentDate1 = moment(new Date()).tz('America/Bogota');
                     const currentDate2 = moment(new Date()).tz('America/Bogota');
-                    let date1: string = currentDate1.hours(0).minutes(0).seconds(0).format('YYYY-MM-DD HH:mm:ss');
-                    let date2: string = currentDate2.hours(0).minutes(0).seconds(0).format('YYYY-MM-DD HH:mm:ss');
-                    date1 = currentDate1.add(23, "hours").add(59, "minutes").format('YYYY-MM-DD HH:mm:ss');
-                    date2 = currentDate2.add(-1, "months").format('YYYY-MM-DD HH:mm:ss');
+                    let date1: string = currentDate1.add(23, "hours").add(59, "minutes").hours(0).minutes(0).seconds(0).format('YYYY-MM-DD HH:mm:ss');
+                    let date2: string = currentDate2.add(-1, "months").hours(0).minutes(0).seconds(0).format('YYYY-MM-DD HH:mm:ss');
 
                     const orders: any = await Orders.query(trx)
                         .first()
@@ -355,10 +330,8 @@ export class OrderRouter {
                     let total = 0;
                     const currentDate1 = moment(new Date()).tz('America/Bogota');
                     const currentDate2 = moment(new Date()).tz('America/Bogota');
-                    let date1: string = currentDate1.hours(0).minutes(0).seconds(0).format('YYYY-MM-DD HH:mm:ss');
-                    let date2: string = currentDate2.hours(0).minutes(0).seconds(0).format('YYYY-MM-DD HH:mm:ss');
-                    date1 = currentDate1.add(23, "hours").add(59, "minutes").format('YYYY-MM-DD HH:mm:ss');
-                    date2 = currentDate2.add(-1, "weeks").format('YYYY-MM-DD HH:mm:ss');
+                    let date1: string = currentDate1.add(23, "hours").add(59, "minutes").hours(0).minutes(0).seconds(0).format('YYYY-MM-DD HH:mm:ss');
+                    let date2: string = currentDate2.add(-1, "weeks").hours(0).minutes(0).seconds(0).format('YYYY-MM-DD HH:mm:ss');
 
                     const orders: any = await Orders.query(trx)
                         .whereBetween('start', [date2, date1])
@@ -384,10 +357,8 @@ export class OrderRouter {
                     let total = 0;
                     const currentDate1 = moment(new Date()).tz('America/Bogota');
                     const currentDate2 = moment(new Date()).tz('America/Bogota');
-                    let date1: string = currentDate1.hours(0).minutes(0).seconds(0).format('YYYY-MM-DD HH:mm:ss');
-                    let date2: string = currentDate2.hours(0).minutes(0).seconds(0).format('YYYY-MM-DD HH:mm:ss');
-                    date1 = currentDate1.add(23, "hours").add(59, "minutes").format('YYYY-MM-DD HH:mm:ss');
-                    date2 = currentDate2.add(-1, "months").format('YYYY-MM-DD HH:mm:ss');
+                    let date1: string = currentDate1.add(23, "hours").add(59, "minutes").hours(0).minutes(0).seconds(0).format('YYYY-MM-DD HH:mm:ss');
+                    let date2: string = currentDate2.add(-1, "months").hours(0).minutes(0).seconds(0).format('YYYY-MM-DD HH:mm:ss');
 
                     const orders: any = await Orders.query(trx)
                         .whereBetween('start', [date2, date1])
