@@ -20,8 +20,8 @@ export class OrderRouter {
         });
         router.get('/week', async function (req, res) {
             try {
-                let currentDate = moment(new Date()).hours(23).minutes(59).seconds(59);
-                const lastDate = moment(new Date()).hours(0).minutes(0).seconds(0).add(-7, "days");
+                let currentDate = moment(new Date()).tz('America/Bogota').hours(23).minutes(59).seconds(59);
+                const lastDate = moment(new Date()).tz('America/Bogota').hours(0).minutes(0).seconds(0).add(-7, "days");
                 const orders: any[] = await Orders.query()
                     .whereNotNull('end')
                     .whereBetween('start', [
@@ -62,35 +62,27 @@ export class OrderRouter {
         });
         router.get('/month', async function (req, res) {
             try {
-                let contadorProductos = 0;
-                let arrayCantidad: any[] = [];
-                let contadorArray = 0;
-                let cant: any;
-                // let currentDate = moment(new Date()).hours(23).minutes(59).seconds(59);
-                // const lastDate = moment(new Date()).hours(0).minutes(0).seconds(0).add(-1, "months");
+                const currentDate = moment(new Date()).tz('America/Bogota').hours(23).minutes(59).seconds(59);
+                const lastDate = moment(new Date()).tz('America/Bogota').day(0).hours(0).minutes(0).seconds(0);
 
-                const products: any = await Products.query().whereNull('deleted');
+                console.log(currentDate.format('YYYY-MM-DD HH:mm:ss'));
+                console.log(lastDate.format('YYYY-MM-DD HH:mm:ss'));
 
-                while (products[contadorProductos]) {
-                    cant = await DetailsOrder.query()
-                        .first()
-                        .select('*',
-                            DetailsOrder.query()
-                                .where('productId', products[contadorProductos].id)
-                                .count().as('quantity'))
-                        .orderBy('quantity', 'desc');
-
-
-
-                    arrayCantidad[contadorArray] = {
-                        nameProduct: products[contadorProductos].name,
-                        cantidad: cant.quantity
-                    };
-                    contadorProductos++;
-                    contadorArray++;
-                }
-                res.status(200).send(arrayCantidad);
+                const products = (await Model.raw(`
+                            SELECT d.productId, p.name, COUNT(*) as total, SUM(p.price) as price, SUM(p.cost) as cost
+                            FROM detailsorder d, products p, orders o
+                            WHERE d.orderId = o.id
+                            AND d.productId  = p.id
+                            AND o.\`start\` >= '${lastDate.format('YYYY-MM-DD HH:mm:ss')}'  
+                            AND o.\`start\` <= '${currentDate.format('YYYY-MM-DD HH:mm:ss')}'
+                            GROUP BY d.productId
+                            `))[0];
+                // .orderBy('quantity', 'desc');
+                res.status(200).send(products);
             } catch (e) {
+                if (e instanceof Error) {
+                    e = e.message;
+                }
                 res.status(403).send(e);
             }
         });
@@ -181,7 +173,7 @@ export class OrderRouter {
                     orderSaved.subtotal = req.body.subtotal;
 
                     orderSaved.cost = req.body.cost;
-                    orderSaved.descuento = Number(req.body.descuento) ;
+                    orderSaved.descuento = Number(req.body.descuento);
                     orderSaved.ganancias = Number(orderSaved.subtotal) - Number(orderSaved.cost) - Number(orderSaved.descuento);
                     orderSaved.total = Number(orderSaved.subtotal) - Number(orderSaved.descuento);
 
@@ -215,14 +207,14 @@ export class OrderRouter {
 
                     while (req.body.detailsOrder[contador]) {
                         const product: any = await Products.query(trx).findById(req.body.detailsOrder[contador].productId);
-                        if (product.quantity < req.body.detailsOrder[contador].quantity){
+                        if (product.quantity < req.body.detailsOrder[contador].quantity) {
                             disponibilidadProductos = false;
                         }
                         contador++;
                     }
-                    contador=0;
+                    contador = 0;
 
-                    if (disponibilidadProductos === true){
+                    if (disponibilidadProductos === true) {
                         while (req.body.detailsOrder[contador]) {
                             let product: any = await Products.query(trx).findById(req.body.detailsOrder[contador].productId);
                             product.quantity = Number(product.quantity) - Number(req.body.detailsOrder[contador].quantity);
@@ -251,7 +243,7 @@ export class OrderRouter {
                             .first();
                         table.status = 'En cocina';
                         await Tables.query(trx).updateAndFetchById(table.id, table);
-                    } else{
+                    } else {
                         orderSaved = null;
                     }
                     return (orderSaved);
@@ -266,7 +258,7 @@ export class OrderRouter {
         router.post('/saveOrderWithDescount', async function (req, res) {
             try {
                 const trans = await transaction(Model.knex(), async (trx) => {
-                   return  (await Orders.query(trx).updateAndFetchById(req.body.id, req.body))
+                    return (await Orders.query(trx).updateAndFetchById(req.body.id, req.body))
                 });
                 res.status(200).send(trans);
             } catch (err) {
