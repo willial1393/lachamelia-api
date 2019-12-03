@@ -5,8 +5,7 @@
   "main": "build/app.js",
   "scripts": {
     "tsc": "tsc",
-    "run": "node build/app.js",
-    "dev": "tsc && node ./build/app.js"
+    "run": "tsc && node build/app.js"
   },
   "keywords": [],
   "author": "",
