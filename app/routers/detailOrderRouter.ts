@@ -1,10 +1,7 @@
 import {DetailsOrder} from "../models/detailsOrder";
 import {Products} from "../models/products";
-import {Categories} from "../models/categories";
 import {Model, transaction} from "objection";
-import {Employees} from "../models/employees";
 import {Orders} from "../models/orders";
-import {TypeTable} from "../models/typeTable";
 
 const express = require('express');
 const router = express.Router();
@@ -20,7 +17,7 @@ export class DetailOrderRouter {
         router.post('/insert', async function (req, res) {
             try {
                 const trans = await transaction(Model.knex(), async (trx) => {
-                    delete req.body.products
+                    delete req.body.products;
                     let detailReturn: any;
                     const productReturn: any = await  Products.query(trx)
                         .where('id', req.body.productId)
@@ -50,7 +47,7 @@ export class DetailOrderRouter {
                     productReturn.quantity = Number(productReturn.quantity) + Number(req.body.quantity);
                     await Products.query(trx).updateAndFetchById(productReturn.id, productReturn);
                     return (DetailsOrder.query(trx).deleteById(req.body.id)
-                        .then(value => res.status(200).send('{"status":"deleted"}'))
+                        .then(value => res.status(200).send(value))
                         .catch(reason => res.status(403).send(reason)) )
                 });
                 res.status(200).send(trans);
@@ -63,7 +60,7 @@ export class DetailOrderRouter {
         router.put('/update', async function (req, res) {
             try {
                 const trans = await transaction(Model.knex(), async (trx) => {
-                    delete req.body.products
+                    delete req.body.products;
                     let detailReturn: any;
                     const productReturn: any = await  Products.query(trx)
                         .where('id', req.body.productId)
@@ -101,7 +98,7 @@ export class DetailOrderRouter {
                         .first();
                     const detailsOrder: any = await DetailsOrder.query(trx)
                         .where('orderId', orderReturn.id)
-                        .eager('[products]')
+                        .eager('[products]');
                     return (detailsOrder )
                 });
                 res.status(200).send(trans);

@@ -1,6 +1,5 @@
 import {TypeTable} from "../models/typeTable";
 import {Model} from "objection";
-import {Categories} from "../models/categories";
 
 const express = require('express');
 const router = express.Router();
@@ -45,8 +44,7 @@ export class TypeTableRouter {
                     let typeTableReturn: any = await TypeTable.query(trx)
                         .where('id', req.body.id)
                         .first();
-                    const currentDate = moment(new Date()).tz('America/Bogota').format('YYYY-MM-DD HH:mm:ss');
-                    typeTableReturn.deleted = currentDate;
+                    typeTableReturn.deleted = moment(new Date()).tz('America/Bogota').format('YYYY-MM-DD HH:mm:ss');
 
                     return (
                         await TypeTable.query(trx).updateAndFetchById(typeTableReturn.id, typeTableReturn)

@@ -1,6 +1,5 @@
 import {Categories} from "../models/categories";
 import {Model} from "objection";
-import {Roles} from "../models/roles";
 
 const express = require('express');
 const router = express.Router();
@@ -73,8 +72,7 @@ export class CategoryRouter {
                     let categoryReturn: any = await Categories.query(trx)
                         .where('id', req.body.id)
                         .first();
-                    const currentDate = moment(new Date()).tz('America/Bogota').format('YYYY-MM-DD HH:mm:ss');
-                    categoryReturn.deleted = currentDate;
+                    categoryReturn.deleted = moment(new Date()).tz('America/Bogota').format('YYYY-MM-DD HH:mm:ss');
 
                     return (
                         await Categories.query(trx).updateAndFetchById(categoryReturn.id, categoryReturn)
