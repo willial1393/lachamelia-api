@@ -1,4 +1,3 @@
-import {Model} from "objection";
 import {Tariffs} from "../models/tariffs";
 const express = require('express');
 const router = express.Router();
