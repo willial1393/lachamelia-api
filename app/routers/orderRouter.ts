@@ -63,10 +63,8 @@ export class OrderRouter {
         router.get('/month', async function (req, res) {
             try {
                 const currentDate = moment(new Date()).tz('America/Bogota').hours(23).minutes(59).seconds(59);
-                const lastDate = moment(new Date()).tz('America/Bogota').day(0).hours(0).minutes(0).seconds(0);
+                const lastDate = moment(new Date()).tz('America/Bogota').day(0).hours(0).minutes(0).seconds(0).add(-1, "months");
 
-                console.log(currentDate.format('YYYY-MM-DD HH:mm:ss'));
-                console.log(lastDate.format('YYYY-MM-DD HH:mm:ss'));
 
                 const products = (await Model.raw(`
                             SELECT d.productId, p.name, COUNT(*) as total, SUM(p.price) as price, SUM(p.cost) as cost
@@ -78,6 +76,29 @@ export class OrderRouter {
                             GROUP BY d.productId
                             `))[0];
                 // .orderBy('quantity', 'desc');
+                res.status(200).send(products);
+            } catch (e) {
+                if (e instanceof Error) {
+                    e = e.message;
+                }
+                res.status(403).send(e);
+            }
+        });
+
+        router.post('/monthByRange', async function (req, res) {
+            try {
+                const currentDate = req.body.dateEndSearch;
+                const lastDate = req.body.dateStartSearch;
+
+                const products = (await Model.raw(`
+                            SELECT d.productId, p.name, COUNT(*) as total, SUM(p.price) as price, SUM(p.cost) as cost
+                            FROM detailsorder d, products p, orders o
+                            WHERE d.orderId = o.id
+                            AND d.productId  = p.id
+                            AND o.\`start\` >= '${lastDate}'  
+                            AND o.\`start\` <= '${currentDate}'
+                            GROUP BY d.productId
+                            `))[0];
                 res.status(200).send(products);
             } catch (e) {
                 if (e instanceof Error) {
@@ -314,6 +335,29 @@ export class OrderRouter {
             }
         });
 
+        //Metodo para regresar la cantidad de mesas atendidas por el id del mesero en una mes
+        router.post('/getOrdersByEmployeeInMonthByRange/', async function (req, res) {
+            try {
+                const trans = await transaction(Model.knex(), async (trx) => {
+                    let date1: string = req.body.dateEndSearch;
+                    let date2: string = req.body.dateStartSearch;
+
+                    const orders: any = await Orders.query(trx)
+                        .first()
+                        .select('*',
+                            Orders.query(trx)
+                                .whereBetween('start', [date2, date1])
+                                .andWhere('employeeId', req.body.idEmployeeSearch)
+                                .count().as('length'));
+                    return {status: orders.length};
+                });
+                res.status(200).send(trans);
+
+            } catch (err) {
+                res.status(403).send(err);
+            }
+        });
+
         //Metodo para regresar las ganancias totales de las ordenes por mesero en una semana
         router.get('/getCostOfOrdersByEmployeeInWeek/:employeeId', async function (req, res) {
             try {
@@ -355,6 +399,31 @@ export class OrderRouter {
                     const orders: any = await Orders.query(trx)
                         .whereBetween('start', [date2, date1])
                         .andWhere('employeeId', req.params.employeeId);
+
+                    while (orders[contador]) {
+                        total = Number(total) + Number(orders[contador].subtotal);
+                        contador++;
+                    }
+                    return {total};
+                });
+                res.status(200).send(trans);
+            } catch (err) {
+                res.status(403).send(err);
+            }
+        });
+
+        //Metodo para regresar las ganancias totales de las ordenes por mesero en un mes
+        router.post('/getCostOfOrdersByEmployeeInMonthByRange/', async function (req, res) {
+            try {
+                const trans = await transaction(Model.knex(), async (trx) => {
+                    let contador = 0;
+                    let total = 0;
+                    let date1: string = req.body.dateEndSearch;
+                    let date2: string = req.body.dateStartSearch;
+
+                    const orders: any = await Orders.query(trx)
+                        .whereBetween('start', [date2, date1])
+                        .andWhere('employeeId', req.body.idEmployeeSearch);
 
                     while (orders[contador]) {
                         total = Number(total) + Number(orders[contador].subtotal);
