@@ -38,7 +38,7 @@ export class OrderRouter {
                     w.value = orders
                         .filter(value => moment(value.start, 'YYYY-MM-DD').isSame(currentDate.format('YYYY-MM-DD')));
                     if (w.value.length !== 0) {
-                        w.value = w.value.map(value => value.total)
+                        w.value = w.value.map(value => value.cost)
                             .reduce((previousValue, currentValue) => Number(previousValue) + Number(currentValue));
                     } else {
                         w.value = 0;
