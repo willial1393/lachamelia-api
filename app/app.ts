@@ -10,6 +10,7 @@ import {RolRouter} from "./routers/rolRouter";
 import {TypeTableRouter} from "./routers/typeTableRouter";
 import {TariffRouter} from "./routers/tariffRouter";
 
+require('dotenv').config();
 const bodyParser = require('body-parser');
 const {Model} = require('objection');
 const Knex = require('knex');
@@ -17,11 +18,11 @@ const knex = Knex({
     client: 'mysql2',
     useNullAsDefault: true,
     connection: {
-        host: '3.133.54.94',
-        user: 'root',
-        port: '3307',
-        password: 'csH6jG8W5cvPWVT',
-        database: 'lachamelia'
+        host: process.env.DB_HOST,
+        user: process.env.DB_USER,
+        port: process.env.DB_PORT,
+        password: process.env.DB_PASS,
+        database: process.env.DB_NAME
     }
 });
 Model.knex(knex);
@@ -47,6 +48,6 @@ app.use('/rol', RolRouter.get());
 app.use('/typeTable', TypeTableRouter.get());
 app.use('/tariff', TariffRouter.get());
 
-app.listen(3000, function () {
-    console.log('http://localhost:3000/');
+app.listen(process.env.PORT, function () {
+    console.log('listen on http://localhost:' + process.env.PORT);
 });
