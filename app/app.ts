@@ -37,6 +37,9 @@ app.use((request, res, next) => {
     res.header('Allow', 'GET, POST, OPTIONS, PUT, DELETE');
     next();
 });
+app.get('/', (req, res) => {
+    res.send('LA CHAMELIA API');
+});
 app.use('/table', TableRouter.get());
 app.use('/order', OrderRouter.get());
 app.use('/detailOrder', DetailOrderRouter.get());
