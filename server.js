@@ -1,7 +1,7 @@
 require('dotenv').config();
 const Service = require('node-windows').Service;
 const svc = new Service({
-    name: 'lachamelia_api',
+    name: 'lachameliaapi',
     description: 'La chamelia api port ' + process.env.PORT,
     script: __dirname + '\\build\\app.js'
 });
