@@ -6,7 +6,7 @@
   "scripts": {
     "tsc": "tsc",
     "run": "tsc && node build/app.js",
-    "service": "tsc"
+    "server": "tsc && node server.js"
   },
   "keywords": [],
   "author": "",
