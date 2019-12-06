@@ -6,24 +6,24 @@ const svc = new Service({
     script: __dirname + '\\build\\app.js'
 });
 
-svc.on('uninstall', function () {
-    console.log('Uninstall complete', !svc.exists);
-    svc.install();
+svc.on('stop', function () {
+    console.log('Stop service');
 });
 
-svc.on('install', function () {
+svc.on('start', function () {
+    console.log('Start service');
+    console.log('Listen on port ' + process.env.PORT);
+});
+
+svc.on('install', async function () {
     console.log('install complete', svc.exists);
-    setTimeout(() => {
+    await setTimeout(() => {
         svc.start();
-        if (svc.exists) {
-            console.log('Listen on port ' + process.env.PORT);
-        }
     }, 5000);
 });
 
 if (svc.exists) {
     svc.stop();
-    svc.uninstall();
 } else {
     svc.install();
 }
