@@ -25,6 +25,7 @@ export class DetailOrderRouter {
                     if (productReturn.quantity >= req.body.quantity) {
                         req.body.price = (productReturn.price * req.body.quantity);
                         req.body.cost = (productReturn.cost * req.body.quantity);
+                        req.body.status = 'Pedido';
                         detailReturn = await DetailsOrder.query(trx).insertAndFetch(req.body);
                         productReturn.quantity = Number(productReturn.quantity) - Number(req.body.quantity);
                         await Products.query(trx).updateAndFetchById(productReturn.id, productReturn);
@@ -56,6 +57,12 @@ export class DetailOrderRouter {
             }
         });
 
+        router.get('/:id', function (req, res) {
+            DetailsOrder.query()
+                .findById(req.params.id)
+                .then(value => res.status(200).send(value))
+                .catch(reason => res.status(403).send(reason));
+        });
         // Metodo para modificar el pedido ya realizado desde la vista de mesas
         router.put('/update', async function (req, res) {
             try {

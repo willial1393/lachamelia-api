@@ -84,7 +84,6 @@ export class OrderRouter {
                 res.status(403).send(e);
             }
         });
-
         router.post('/monthByRange', async function (req, res) {
             try {
                 const currentDate = req.body.dateEndSearch;
@@ -107,7 +106,6 @@ export class OrderRouter {
                 res.status(403).send(e);
             }
         });
-
         router.post('/delete', function (req, res) {
             Orders.query().deleteById(req.body.id).then(res.status(200).send('{"status":"deleted"}'))
                 .catch(reason => res.status(403).send(reason));
@@ -115,6 +113,22 @@ export class OrderRouter {
         router.put('/update', function (req, res) {
             Orders.query().updateAndFetchById(req.body.id, req.body).then(value => res.status(200).send(value))
                 .catch(reason => res.status(403).send(reason));
+        });
+        router.post('/changeStatusDetail', async function (req, res) {
+            try {
+                const trans = await transaction(Model.knex(), async (trx) => {
+                    let detailOrderSaved: any = await DetailsOrder.query(trx)
+                        .where('id', req.body.idDetailOrder)
+                        .first();
+
+                    detailOrderSaved.status = req.body.status;
+                    detailOrderSaved = await DetailsOrder.query(trx).updateAndFetchById(detailOrderSaved.id, detailOrderSaved);
+                    return (detailOrderSaved)
+                });
+                res.status(200).send(trans);
+            } catch (err) {
+                res.status(403).send(err);
+            }
         });
 
         // Trae la informacion de la orden segun su id
@@ -125,7 +139,6 @@ export class OrderRouter {
                 .then(value => res.status(200).send(value))
                 .catch(reason => res.status(403).send(reason));
         });
-
         // Metodo para traer las ordenes atendidas diarias con el nombre del mesero
         router.get('/ordersDailyByNameOfWaiter/:name', async function (req, res) {
             try {
@@ -150,7 +163,6 @@ export class OrderRouter {
                 res.status(403).send(JSON.stringify(err));
             }
         });
-
         //Metodo para cambiar el estado de la mesa cuando se despacho el pedido, poner la duracion y la fecha de terminacion de la orden
         router.get('/name/:name', async function (req, res) {
             try {
@@ -161,17 +173,11 @@ export class OrderRouter {
                     getTable.status = 'Ocupado';
                     await Tables.query(trx).updateAndFetchById(getTable.id, getTable);
 
-                    const order: any = await Orders.query(trx)
-                        .eager('[detailsOrder, employees]')
-                        .first()
-                        .where('tableId', getTable.id)
-                        .whereNull('end');
-                    order.end = moment(new Date()).tz('America/Bogota').format('YYYY-MM-DD HH:mm:ss');
-                    order.duration = moment.utc(moment(order.end, "YYYY-MM-DD HH:mm:ss").diff(moment(order.start, "YYYY-MM-DD HH:mm:ss"))).format("HH:mm:ss");
                     return (
-                        Orders.query(trx).updateAndFetchById(order.id, order)
-                            .then(value => res.status(200).send(value))
-                            .catch(reason => res.status(403).send(reason))
+                        await Orders.query(trx)
+                            .first()
+                            .where('tableId', getTable.id)
+                            .whereNull('end')
                     );
                 });
                 res.status(200).send(trans);
@@ -190,6 +196,8 @@ export class OrderRouter {
                         .where('id', req.body.id)
                         .first();
                     // const ivaReturn: any = await Tariffs.query(trx).first();
+                    orderSaved.end = moment(new Date()).tz('America/Bogota').format('YYYY-MM-DD HH:mm:ss');
+                    orderSaved.duration = moment.utc(moment(orderSaved.end, "YYYY-MM-DD HH:mm:ss").diff(moment(orderSaved.start, "YYYY-MM-DD HH:mm:ss"))).format("HH:mm:ss");
 
                     orderSaved.subtotal = req.body.subtotal;
 
@@ -249,6 +257,7 @@ export class OrderRouter {
                             .insertAndFetch(orderFull);
                         while (req.body.detailsOrder[contador]) {
                             req.body.detailsOrder[contador].orderId = orderSaved.id;
+                            req.body.detailsOrder[contador].status = 'Pedido';
                             delete req.body.detailsOrder[contador].products;
                             const product: any = await Products.query(trx)
                                 .where('id', req.body.detailsOrder[contador].productId)
