@@ -6,14 +6,24 @@ const svc = new Service({
     script: __dirname + '\\build\\app.js'
 });
 
+svc.on('uninstall', function () {
+    console.log('Uninstall complete.');
+    console.log('The service exists: ', svc.exists);
+    svc.install();
+});
+
 svc.on('install', function () {
     try {
         console.log('The service exists: ', svc.exists);
         console.log('Listen on port ' + process.env.PORT);
         svc.start();
     } catch (e) {
-        console.log('error');
+        console.log(e);
     }
 });
 
-svc.install();
+if (svc.exists) {
+    svc.uninstall();
+} else {
+    svc.install();
+}
