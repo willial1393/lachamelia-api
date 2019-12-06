@@ -8,11 +8,11 @@ const svc = new Service({
 
 svc.on('install', function () {
     try {
-        svc.start();
         console.log('The service exists: ', svc.exists);
         console.log('Listen on port ' + process.env.PORT);
+        svc.start();
     } catch (e) {
-        console.log('error', e);
+        console.log('error');
     }
 });
 
