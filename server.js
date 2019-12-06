@@ -29,6 +29,7 @@ svc.on('error', function () {
     console.log('Error service');
 });
 
+console.log('Exist service', svc.exists);
 if (svc.exists) {
     svc.uninstall();
 } else {
