@@ -10,7 +10,6 @@ svc.on('install', function () {
     try {
         svc.start();
         console.log('The service exists: ', svc.exists);
-        console.log('The service exists: ', svc.getState());
         console.log('Listen on port ' + process.env.PORT);
     } catch (e) {
         console.log('error', e);
