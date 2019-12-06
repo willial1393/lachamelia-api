@@ -32,7 +32,6 @@ svc.on('error', function () {
 console.log('Exist service', svc.exists);
 if (svc.exists) {
     try {
-        svc.stop();
         setTimeout(() => {
             svc.uninstall();
         }, 10000);
