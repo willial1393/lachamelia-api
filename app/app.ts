@@ -38,7 +38,7 @@ app.use((request, res, next) => {
     next();
 });
 app.get('/', (req, res) => {
-    res.send('RESTAURANTE - LA CHAMELIA - NodeJS API');
+    res.send('RESTAURANTE - LA CHAMELIA - Api NodeJS');
 });
 app.use('/table', TableRouter.get());
 app.use('/order', OrderRouter.get());
