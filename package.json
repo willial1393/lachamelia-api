@@ -6,7 +6,7 @@
   "scripts": {
     "tsc": "tsc",
     "run": "tsc && node build/app.js",
-    "server": "tsc && node server.js"
+    "server": "node server-uninstall.js && tsc && node server.js"
   },
   "keywords": [],
   "author": "",
