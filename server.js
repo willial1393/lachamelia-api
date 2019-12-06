@@ -29,15 +29,9 @@ svc.on('error', function () {
     console.log('Error service');
 });
 
-console.log('Exist service', svc.exists);
+console.log('Exist service ->', svc.exists);
 if (svc.exists) {
-    try {
-        setTimeout(() => {
-            svc.uninstall();
-        }, 10000);
-    } catch (e) {
-        console.error('¡¡¡Error reinstall service!!!', e);
-    }
+    svc.uninstall();
 } else {
     svc.install();
 }
