@@ -32,7 +32,7 @@ svc.on('error', function () {
 console.log('Exist service', svc.exists);
 if (svc.exists) {
     try {
-        svc.uninstall();
+        svc.stop();
     } catch (e) {
         console.log('Error reinstall service', e);
     }
