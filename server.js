@@ -22,7 +22,8 @@ svc.on('start', function () {
 
 svc.on('install', async function () {
     console.log('install complete', svc.exists);
-    svc.start();
+    await svc.start();
+    await svc.start();
 });
 
 svc.on('error', function () {
