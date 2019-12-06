@@ -37,7 +37,7 @@ if (svc.exists) {
             svc.uninstall();
         }, 10000);
     } catch (e) {
-        console.log('¡¡¡Error reinstall service!!!', e);
+        console.error('¡¡¡Error reinstall service!!!', e);
     }
 } else {
     svc.install();
