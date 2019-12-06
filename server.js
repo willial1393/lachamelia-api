@@ -20,10 +20,9 @@ svc.on('start', function () {
     console.log('Listen on port ' + process.env.PORT);
 });
 
-svc.on('install', async function () {
+svc.on('install', function () {
     console.log('install complete', svc.exists);
-    await svc.start();
-    await svc.start();
+    svc.start();
 });
 
 svc.on('error', function () {
