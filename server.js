@@ -12,15 +12,13 @@ svc.on('uninstall', function () {
 });
 
 svc.on('install', function () {
-    try {
-        console.log('install complete', svc.exists);
+    console.log('install complete', svc.exists);
+    setTimeout(() => {
         svc.start();
         if (svc.exists) {
             console.log('Listen on port ' + process.env.PORT);
         }
-    } catch (e) {
-        console.log(e);
-    }
+    }, 5000);
 });
 
 if (svc.exists) {
