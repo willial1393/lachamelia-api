@@ -200,10 +200,11 @@ export class OrderRouter {
                     orderSaved.duration = moment.utc(moment(orderSaved.end, "YYYY-MM-DD HH:mm:ss").diff(moment(orderSaved.start, "YYYY-MM-DD HH:mm:ss"))).format("HH:mm:ss");
 
                     orderSaved.subtotal = req.body.subtotal;
+                    orderSaved.totalService = req.body.totalService;
 
                     orderSaved.cost = req.body.cost;
                     orderSaved.descuento = Number(req.body.descuento);
-                    orderSaved.ganancias = Number(orderSaved.subtotal) - Number(orderSaved.cost) - Number(orderSaved.descuento);
+                    orderSaved.ganancias = Number(orderSaved.subtotal) - Number(orderSaved.cost) - Number(orderSaved.descuento) - Number(orderSaved.totalService);
                     orderSaved.total = Number(orderSaved.subtotal) - Number(orderSaved.descuento);
 
                     //orderSaved.impuesto = (Number(ivaReturn.iva)/100)*(Number(req.body.subtotal));
@@ -264,6 +265,8 @@ export class OrderRouter {
                                 .first();
                             req.body.detailsOrder[contador].price = product.price * req.body.detailsOrder[contador].quantity;
                             req.body.detailsOrder[contador].cost = product.cost * req.body.detailsOrder[contador].quantity;
+                            req.body.detailsOrder[contador].service = ((product.percentageService * req.body.detailsOrder[contador].price)/100);
+
                             await DetailsOrder.query(trx)
                                 .insertAndFetch(req.body.detailsOrder[contador]);
                             contador++;

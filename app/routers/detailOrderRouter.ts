@@ -25,6 +25,7 @@ export class DetailOrderRouter {
                     if (productReturn.quantity >= req.body.quantity) {
                         req.body.price = (productReturn.price * req.body.quantity);
                         req.body.cost = (productReturn.cost * req.body.quantity);
+                        req.body.service = ((productReturn.percentageService * req.body.price)/100);
                         req.body.status = 'Pedido';
                         detailReturn = await DetailsOrder.query(trx).insertAndFetch(req.body);
                         productReturn.quantity = Number(productReturn.quantity) - Number(req.body.quantity);
@@ -85,6 +86,7 @@ export class DetailOrderRouter {
 
                         req.body.price = (productReturn.price * req.body.quantity);
                         req.body.cost = (productReturn.cost * req.body.quantity);
+                        req.body.service = ((productReturn.percentageService * req.body.price)/100);
                         detailReturn = await DetailsOrder.query(trx).updateAndFetchById(req.body.id, req.body);
                     }
                     return (
