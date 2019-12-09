@@ -33,7 +33,11 @@ export class OrderRouter {
                     const w: any = {
                         date: currentDate.format('YYYY-MM-DD'),
                         value: 0,
-                        value1: 0
+                        value1: 0,
+                        value2: 0,
+                        value3: 0,
+                        value4: 0,
+                        value5: 0,
                     };
                     w.value = orders
                         .filter(value => moment(value.start, 'YYYY-MM-DD').isSame(currentDate.format('YYYY-MM-DD')));
@@ -51,6 +55,42 @@ export class OrderRouter {
                             .reduce((previousValue, currentValue) => Number(previousValue) + Number(currentValue));
                     } else {
                         w.value1 = 0;
+                    }
+
+                    w.value2 = orders
+                        .filter(value2 => moment(value2.start, 'YYYY-MM-DD').isSame(currentDate.format('YYYY-MM-DD')));
+                    if (w.value2.length !== 0) {
+                        w.value2 = w.value2.map(value2 => value2.total)
+                            .reduce((previousValue, currentValue) => Number(previousValue) + Number(currentValue));
+                    } else {
+                        w.value2 = 0;
+                    }
+
+                    w.value3 = orders
+                        .filter(value3 => moment(value3.start, 'YYYY-MM-DD').isSame(currentDate.format('YYYY-MM-DD')));
+                    if (w.value3.length !== 0) {
+                        w.value3 = w.value3.map(value3 => value3.totalService)
+                            .reduce((previousValue, currentValue) => Number(previousValue) + Number(currentValue));
+                    } else {
+                        w.value3 = 0;
+                    }
+
+                    w.value4 = orders
+                        .filter(value4 => moment(value4.start, 'YYYY-MM-DD').isSame(currentDate.format('YYYY-MM-DD')));
+                    if (w.value4.length !== 0) {
+                        w.value4 = w.value4.map(value4 => value4.descuento)
+                            .reduce((previousValue, currentValue) => Number(previousValue) + Number(currentValue));
+                    } else {
+                        w.value4 = 0;
+                    }
+
+                    w.value5 = orders
+                        .filter(value5 => moment(value5.start, 'YYYY-MM-DD').isSame(currentDate.format('YYYY-MM-DD')));
+                    if (w.value5.length !== 0) {
+                        w.value5 = w.value5.map(value5 => value5.subtotal)
+                            .reduce((previousValue, currentValue) => Number(previousValue) + Number(currentValue));
+                    } else {
+                        w.value5 = 0;
                     }
                     week.push(w);
                     currentDate.add(-1, "days");
@@ -201,10 +241,11 @@ export class OrderRouter {
 
                     orderSaved.subtotal = req.body.subtotal;
                     orderSaved.totalService = req.body.totalService;
+                    orderSaved.impuesto = req.body.tax;
 
                     orderSaved.cost = req.body.cost;
                     orderSaved.descuento = Number(req.body.descuento);
-                    orderSaved.ganancias = Number(orderSaved.subtotal) - Number(orderSaved.cost) - Number(orderSaved.descuento) - Number(orderSaved.totalService);
+                    orderSaved.ganancias = Number(orderSaved.subtotal) - Number(orderSaved.cost) - Number(orderSaved.descuento) - Number(orderSaved.totalService) - Number(orderSaved.impuesto);
                     orderSaved.total = Number(orderSaved.subtotal) - Number(orderSaved.descuento);
 
                     //orderSaved.impuesto = (Number(ivaReturn.iva)/100)*(Number(req.body.subtotal));
@@ -266,6 +307,7 @@ export class OrderRouter {
                             req.body.detailsOrder[contador].price = product.price * req.body.detailsOrder[contador].quantity;
                             req.body.detailsOrder[contador].cost = product.cost * req.body.detailsOrder[contador].quantity;
                             req.body.detailsOrder[contador].service = ((product.percentageService * req.body.detailsOrder[contador].price)/100);
+                            req.body.detailsOrder[contador].tax = ((product.tax * req.body.detailsOrder[contador].price)/100);
 
                             await DetailsOrder.query(trx)
                                 .insertAndFetch(req.body.detailsOrder[contador]);
