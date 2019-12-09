@@ -14,7 +14,7 @@ export class OrderRouter {
         router.get('/', function (req, res) {
             Orders.query()
                 .whereNull('end')
-                .eager('[tables, employees, detailsOrder.[products]]')
+                .eager('[tables, employees, detailsOrder.[products.[categories]]]')
                 .then(value => res.status(200).send(value))
                 .catch(reason => res.status(403).send(reason));
         });

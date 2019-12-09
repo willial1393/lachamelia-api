@@ -59,6 +59,7 @@ export class DetailOrderRouter {
 
         router.get('/:id', function (req, res) {
             DetailsOrder.query()
+                .eager('[products.[categories]]')
                 .findById(req.params.id)
                 .then(value => res.status(200).send(value))
                 .catch(reason => res.status(403).send(reason));

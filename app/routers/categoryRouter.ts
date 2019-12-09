@@ -49,6 +49,7 @@ export class CategoryRouter {
         // Metodo para trer todas las categorias que no han sido eliminadas
         router.get('/', function (req, res) {
             Categories.query()
+                .eager('[roles]')
                 .whereNull('deleted')
                 .then(value => res.status(200).send(value))
                 .catch(reason => res.status(403).send(reason));
