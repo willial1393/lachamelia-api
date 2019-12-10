@@ -171,6 +171,36 @@ export class OrderRouter {
             }
         });
 
+        //Metodo para regresar las ganancias totales de las ordenes por mesero en una semana
+        router.get('/getCostOfOrdersInDayAllWaiters', async function (req, res) {
+            try {
+                const trans = await transaction(Model.knex(), async (trx) => {
+                    let contador = 0;
+                    let total = 0;
+                    const currentDate1 = moment(new Date()).tz('America/Bogota');
+                    const currentDate2 = moment(new Date()).tz('America/Bogota');
+                    let date1: string = currentDate1.add(23, "hours").add(59, "minutes").hours(0).minutes(0).seconds(0).format('YYYY-MM-DD HH:mm:ss');
+                    let date2: string = currentDate2.hours(0).minutes(0).seconds(0).format('YYYY-MM-DD HH:mm:ss');
+
+                    const orders: any = await Orders.query(trx)
+                        .whereBetween('start', [date2, date1]);
+
+                    while (orders[contador]) {
+                        total = Number(total) + Number(orders[contador].totalService);
+                        contador++;
+                    }
+                    const infoDay= {
+                        total,
+                        cantOrders: orders.length
+                    };
+
+                    return {infoDay};
+                });
+                res.status(200).send(trans);
+            } catch (err) {
+                res.status(403).send(err);
+            }
+        });
         // Trae la informacion de la orden segun su id
         router.get('/:id', function (req, res) {
             Orders.query()
@@ -342,6 +372,30 @@ export class OrderRouter {
         });
 
         //Metodo para regresar la cantidad de mesas atendidas por el id del mesero en una semana
+        router.get('/getOrdersByEmployeeInDay/:employeeId', async function (req, res) {
+            try {
+                const trans = await transaction(Model.knex(), async (trx) => {
+                    const currentDate1 = moment(new Date()).tz('America/Bogota');
+                    const currentDate2 = moment(new Date()).tz('America/Bogota');
+                    let date1: string = currentDate1.add(23, "hours").add(59, "minutes").hours(0).minutes(0).seconds(0).format('YYYY-MM-DD HH:mm:ss');
+                    let date2: string = currentDate2.hours(0).minutes(0).seconds(0).format('YYYY-MM-DD HH:mm:ss');
+
+                    const orders: any = await Orders.query(trx)
+                        .first()
+                        .select('*',
+                            Orders.query(trx)
+                                .whereBetween('start', [date2, date1])
+                                .andWhere('employeeId', req.params.employeeId)
+                                .count().as('length'));
+                    return {status: orders.length};
+                });
+                res.status(200).send(trans);
+            } catch (err) {
+                res.status(403).send(err);
+            }
+        });
+
+        //Metodo para regresar la cantidad de mesas atendidas por el id del mesero en una semana
         router.get('/getOrdersByEmployeeInWeek/:employeeId', async function (req, res) {
             try {
                 const trans = await transaction(Model.knex(), async (trx) => {
@@ -429,6 +483,33 @@ export class OrderRouter {
 
                     while (orders[contador]) {
                         total = Number(total) + Number(orders[contador].subtotal);
+                        contador++;
+                    }
+                    return {total};
+                });
+                res.status(200).send(trans);
+            } catch (err) {
+                res.status(403).send(err);
+            }
+        });
+
+        //Metodo para regresar las ganancias totales de las ordenes por mesero en una semana
+        router.get('/getCostOfOrdersByEmployeeInDay/:employeeId', async function (req, res) {
+            try {
+                const trans = await transaction(Model.knex(), async (trx) => {
+                    let contador = 0;
+                    let total = 0;
+                    const currentDate1 = moment(new Date()).tz('America/Bogota');
+                    const currentDate2 = moment(new Date()).tz('America/Bogota');
+                    let date1: string = currentDate1.add(23, "hours").add(59, "minutes").hours(0).minutes(0).seconds(0).format('YYYY-MM-DD HH:mm:ss');
+                    let date2: string = currentDate2.hours(0).minutes(0).seconds(0).format('YYYY-MM-DD HH:mm:ss');
+
+                    const orders: any = await Orders.query(trx)
+                        .whereBetween('start', [date2, date1])
+                        .andWhere('employeeId', req.params.employeeId);
+
+                    while (orders[contador]) {
+                        total = Number(total) + Number(orders[contador].totalService);
                         contador++;
                     }
                     return {total};
