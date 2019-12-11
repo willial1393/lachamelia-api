@@ -161,6 +161,14 @@ export class OrderRouter {
                         .where('id', req.body.idDetailOrder)
                         .first();
 
+                    if (req.body.status === 'Cancelado') {
+                        let productReturn: any = await Products.query(trx)
+                            .where('id', detailOrderSaved.productId)
+                            .first();
+                        productReturn.quantity = Number(productReturn.quantity) + Number(detailOrderSaved.quantity);
+                        await Products.query(trx).updateAndFetchById(productReturn.id, productReturn);
+                    }
+
                     detailOrderSaved.status = req.body.status;
                     detailOrderSaved = await DetailsOrder.query(trx).updateAndFetchById(detailOrderSaved.id, detailOrderSaved);
                     return (detailOrderSaved)
@@ -288,6 +296,31 @@ export class OrderRouter {
                     tableChanged.status = 'Disponible';
                     await Tables.query(trx).updateAndFetchById(tableChanged.id, tableChanged);
                     return (orderSaved)
+                });
+                res.status(200).send(trans);
+            } catch (err) {
+                res.status(403).send(err);
+            }
+        });
+
+        router.post('/cancelOrder', async function (req, res) {
+            try {
+                const trans = await transaction(Model.knex(), async (trx) => {
+
+                    req.body.tables.status = 'Disponible';
+                    const tableReturn = await Tables.query(trx).updateAndFetchById(req.body.tables.id, req.body.tables);
+
+                    for (let i = 0; i < req.body.detailsOrder.length; i++) {
+                        let productReturn: any = await Products.query(trx)
+                            .findById(req.body.detailsOrder[i].productId);
+
+                        productReturn.quantity = productReturn.quantity + req.body.detailsOrder[i].quantity;
+                        await Products.query(trx).updateAndFetchById(productReturn.id, productReturn);
+
+                        await DetailsOrder.query(trx).deleteById(req.body.detailsOrder[i].id);
+                    }
+                    await Orders.query(trx).deleteById(req.body.id);
+                    return (tableReturn)
                 });
                 res.status(200).send(trans);
             } catch (err) {
