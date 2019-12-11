@@ -1,0 +1,12 @@
+2019-12-05 17:08:50 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\WILLIAM\AppData\Roaming\npm\node_modules\node-windows\lib\wrapper.js --file C:\laragon\www\lachamelia-api\server.js --log "Node.js Service Management API wrapper" --grow 0.25 --wait 1 --maxrestarts 3 --abortonerror n --stopparentfirst undefined
+2019-12-05 17:08:50 - Started 2104
+2019-12-05 17:12:17 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\WILLIAM\AppData\Roaming\npm\node_modules\node-windows\lib\wrapper.js --file C:\laragon\www\lachamelia-api\server.js --log "Node.js Service Management API wrapper" --grow 0.25 --wait 1 --maxrestarts 3 --abortonerror n --stopparentfirst undefined
+2019-12-05 17:12:17 - Started 15164
+2019-12-05 17:22:41 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\WILLIAM\AppData\Roaming\npm\node_modules\node-windows\lib\wrapper.js --file C:\laragon\www\lachamelia-api\server.js --log "Node.js Service Management API wrapper" --grow 0.25 --wait 1 --maxrestarts 3 --abortonerror n --stopparentfirst undefined
+2019-12-05 17:22:41 - Started 960
+2019-12-05 17:23:10 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\WILLIAM\AppData\Roaming\npm\node_modules\node-windows\lib\wrapper.js --file C:\laragon\www\lachamelia-api\server.js --log "Node.js Service Management API wrapper" --grow 0.25 --wait 1 --maxrestarts 3 --abortonerror n --stopparentfirst undefined
+2019-12-05 17:23:10 - Started 15708
+2019-12-05 17:23:19 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\WILLIAM\AppData\Roaming\npm\node_modules\node-windows\lib\wrapper.js --file C:\laragon\www\lachamelia-api\server.js --log "Node.js Service Management API wrapper" --grow 0.25 --wait 1 --maxrestarts 3 --abortonerror n --stopparentfirst undefined
+2019-12-05 17:23:19 - Started 932
+2019-12-05 17:41:42 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\WILLIAM\AppData\Roaming\npm\node_modules\node-windows\lib\wrapper.js --file C:\laragon\www\lachamelia-api\server.js --log "Node.js Service Management API wrapper" --grow 0.25 --wait 1 --maxrestarts 3 --abortonerror n --stopparentfirst undefined
+2019-12-05 17:41:42 - Started 5988
