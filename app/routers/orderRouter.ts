@@ -178,8 +178,6 @@ export class OrderRouter {
                 res.status(403).send(err);
             }
         });
-
-        //Metodo para regresar las ganancias totales de las ordenes por mesero en una semana
         router.get('/getCostOfOrdersInDayAllWaiters', async function (req, res) {
             try {
                 const trans = await transaction(Model.knex(), async (trx) => {
@@ -209,7 +207,6 @@ export class OrderRouter {
                 res.status(403).send(err);
             }
         });
-        // Trae la informacion de la orden segun su id
         router.get('/:id', function (req, res) {
             Orders.query()
                 .findById(req.params.id)
@@ -217,7 +214,6 @@ export class OrderRouter {
                 .then(value => res.status(200).send(value))
                 .catch(reason => res.status(403).send(reason));
         });
-        // Metodo para traer las ordenes atendidas diarias con el nombre del mesero
         router.get('/ordersDailyByNameOfWaiter/:name', async function (req, res) {
             try {
                 const trans = await transaction(Model.knex(), async (trx) => {
@@ -241,7 +237,6 @@ export class OrderRouter {
                 res.status(403).send(JSON.stringify(err));
             }
         });
-        //Metodo para cambiar el estado de la mesa cuando se despacho el pedido, poner la duracion y la fecha de terminacion de la orden
         router.get('/name/:name', async function (req, res) {
             try {
                 const trans = await transaction(Model.knex(), async (trx) => {
@@ -263,8 +258,6 @@ export class OrderRouter {
                 res.status(403).send(err);
             }
         });
-
-        // Metodo guardar el total de la orden y cambiar el estado de la mesa
         router.post('/payOrder', async function (req, res) {
             try {
                 const trans = await transaction(Model.knex(), async (trx) => {
@@ -302,7 +295,6 @@ export class OrderRouter {
                 res.status(403).send(err);
             }
         });
-
         router.post('/cancelOrder', async function (req, res) {
             try {
                 const trans = await transaction(Model.knex(), async (trx) => {
@@ -327,8 +319,47 @@ export class OrderRouter {
                 res.status(403).send(err);
             }
         });
+        router.post('/prepareOrder', async function (req, res) {
+            try {
+                const trans = await transaction(Model.knex(), async (trx) => {
+                    req.body.tables.status = 'Ocupado';
+                    const tableReturn = await Tables.query(trx).updateAndFetchById(req.body.tables.id, req.body.tables);
 
-        // Metodo para guardar la orden con sus detalles y cambiar el estado de la mesa
+                    for (let i = 0; i < req.body.detailsOrder.length; i++) {
+                        if (req.body.detailsOrder[i].status === 'Pedido') {
+                            req.body.detailsOrder[i].status = 'Preparando'
+                            await DetailsOrder.query(trx).updateAndFetchById(req.body.detailsOrder[i].id, req.body.detailsOrder[i]);
+                        }
+                    }
+
+                    return (tableReturn)
+                });
+                res.status(200).send(trans);
+            } catch (err) {
+                res.status(403).send(err);
+            }
+        });
+        router.post('/dispatchOrder', async function (req, res) {
+            try {
+                const trans = await transaction(Model.knex(), async (trx) => {
+                    req.body.tables.status = 'Ocupado';
+                    const tableReturn = await Tables.query(trx).updateAndFetchById(req.body.tables.id, req.body.tables);
+
+                    for (let i = 0; i < req.body.detailsOrder.length; i++) {
+                        if (req.body.detailsOrder[i].status === 'Pedido' ||
+                            req.body.detailsOrder[i].status === 'Preparando') {
+                            req.body.detailsOrder[i].status = 'Despachado'
+                            await DetailsOrder.query(trx).updateAndFetchById(req.body.detailsOrder[i].id, req.body.detailsOrder[i]);
+                        }
+                    }
+
+                    return (tableReturn)
+                });
+                res.status(200).send(trans);
+            } catch (err) {
+                res.status(403).send(err);
+            }
+        });
         router.post('/insertOrderWithDetails', async function (req, res) {
             try {
                 const trans = await transaction(Model.knex(), async (trx) => {
@@ -391,8 +422,6 @@ export class OrderRouter {
                 res.status(403).send(err);
             }
         });
-
-        // Metodo para guardar la orden con sus detalles y cambiar el estado de la mesa
         router.post('/saveOrderWithDescount', async function (req, res) {
             try {
                 const trans = await transaction(Model.knex(), async (trx) => {
@@ -403,8 +432,6 @@ export class OrderRouter {
                 res.status(403).send(err);
             }
         });
-
-        //Metodo para regresar la cantidad de mesas atendidas por el id del mesero en una semana
         router.get('/getOrdersByEmployeeInDay/:employeeId', async function (req, res) {
             try {
                 const trans = await transaction(Model.knex(), async (trx) => {
@@ -427,8 +454,6 @@ export class OrderRouter {
                 res.status(403).send(err);
             }
         });
-
-        //Metodo para regresar la cantidad de mesas atendidas por el id del mesero en una semana
         router.get('/getOrdersByEmployeeInWeek/:employeeId', async function (req, res) {
             try {
                 const trans = await transaction(Model.knex(), async (trx) => {
@@ -451,8 +476,6 @@ export class OrderRouter {
                 res.status(403).send(err);
             }
         });
-
-        //Metodo para regresar la cantidad de mesas atendidas por el id del mesero en una mes
         router.get('/getOrdersByEmployeeInMonth/:employeeId', async function (req, res) {
             try {
                 const trans = await transaction(Model.knex(), async (trx) => {
@@ -475,8 +498,6 @@ export class OrderRouter {
                 res.status(403).send(err);
             }
         });
-
-        //Metodo para regresar la cantidad de mesas atendidas por el id del mesero en una mes
         router.post('/getOrdersByEmployeeInMonthByRange/', async function (req, res) {
             try {
                 const trans = await transaction(Model.knex(), async (trx) => {
@@ -498,8 +519,6 @@ export class OrderRouter {
                 res.status(403).send(err);
             }
         });
-
-        //Metodo para regresar las ganancias totales de las ordenes por mesero en una semana
         router.get('/getCostOfOrdersByEmployeeInWeek/:employeeId', async function (req, res) {
             try {
                 const trans = await transaction(Model.knex(), async (trx) => {
@@ -525,8 +544,6 @@ export class OrderRouter {
                 res.status(403).send(err);
             }
         });
-
-        //Metodo para regresar las ganancias totales de las ordenes por mesero en una semana
         router.get('/getCostOfOrdersByEmployeeInDay/:employeeId', async function (req, res) {
             try {
                 const trans = await transaction(Model.knex(), async (trx) => {
@@ -552,8 +569,6 @@ export class OrderRouter {
                 res.status(403).send(err);
             }
         });
-
-        //Metodo para regresar las ganancias totales de las ordenes por mesero en un mes
         router.get('/getCostOfOrdersByEmployeeInMonth/:employeeId', async function (req, res) {
             try {
                 const trans = await transaction(Model.knex(), async (trx) => {
@@ -579,8 +594,6 @@ export class OrderRouter {
                 res.status(403).send(err);
             }
         });
-
-        //Metodo para regresar las ganancias totales de las ordenes por mesero en un mes
         router.post('/getCostOfOrdersByEmployeeInMonthByRange/', async function (req, res) {
             try {
                 const trans = await transaction(Model.knex(), async (trx) => {
