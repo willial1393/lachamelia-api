@@ -20,7 +20,7 @@ export class TableRouter {
                         .whereNull('total')
                         .andWhere('tableId', table.id)
                         .first()
-                        .eager('[detailsOrder, employees, tables]')
+                        .eager('[detailsOrder.[products], employees, tables]');
                     return (
                         order
                     );
@@ -37,8 +37,7 @@ export class TableRouter {
                     let tableReturn: any = await Tables.query(trx)
                         .where('id', req.body.id)
                         .first();
-                    const currentDate = moment(new Date()).tz('America/Bogota').format('YYYY-MM-DD HH:mm:ss');
-                    tableReturn.deleted = currentDate;
+                    tableReturn.deleted = moment(new Date()).tz('America/Bogota').format('YYYY-MM-DD HH:mm:ss');
 
                     return (
                         await Tables.query(trx).updateAndFetchById(tableReturn.id, tableReturn)
@@ -84,7 +83,7 @@ export class TableRouter {
                     let date1: string = currentDate1.hours(0).minutes(0).seconds(0).format('YYYY-MM-DD HH:mm:ss');
                     let date2: string = currentDate2.hours(0).minutes(0).seconds(0).format('YYYY-MM-DD HH:mm:ss');
                     date1 = currentDate1.add(-1, "months").format('YYYY-MM-DD HH:mm:ss');
-                    const tablesReturn: any = await  Tables.query(trx).whereNull('deleted')
+                    const tablesReturn: any = await  Tables.query(trx).whereNull('deleted');
 
                     while (tablesReturn[contadorTablas]) {
                         const orders: any = await Orders.query(trx)
@@ -121,7 +120,7 @@ export class TableRouter {
 
                     const tableReturn: any = await Tables.query(trx)
                         .where('name', req.params.name)
-                        .first()
+                        .first();
 
                     const orders: any = await Orders.query(trx)
                         .first()
@@ -152,7 +151,7 @@ export class TableRouter {
 
                     const tableReturn: any = await Tables.query(trx)
                         .where('name', req.params.name)
-                        .first()
+                        .first();
 
                     const orders: any = await Orders.query(trx)
                         .whereBetween('start', [date2, date1])
@@ -187,7 +186,7 @@ export class TableRouter {
                     const order: any = await Orders.query(trx)
                         .whereBetween('start', [date2, date1])
                         .andWhere('tableId', table.id)
-                        .eager('[employees]')
+                        .eager('[employees]');
                     return (
                         order
                     );

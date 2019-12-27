@@ -277,12 +277,14 @@ export class OrderRouter {
                     orderSaved.cost = req.body.cost;
                     orderSaved.descuento = Number(req.body.descuento);
                     orderSaved.ganancias = Number(orderSaved.subtotal) - Number(orderSaved.cost) - Number(orderSaved.descuento) - Number(orderSaved.totalService) - Number(orderSaved.impuesto);
-                    orderSaved.total = Number(orderSaved.subtotal) - Number(orderSaved.descuento);
+                    orderSaved.total = Number(orderSaved.subtotal) - Number(orderSaved.descuento) + Number(orderSaved.totalService) + Number(orderSaved.impuesto);
 
                     //orderSaved.impuesto = (Number(ivaReturn.iva)/100)*(Number(req.body.subtotal));
                     //orderSaved.total = Number(orderSaved.subtotal) + Number(orderSaved.impuesto);
 
-                    orderSaved = await Orders.query(trx).updateAndFetchById(orderSaved.id, orderSaved);
+                    orderSaved = await Orders.query(trx)
+                        .eager('[detailsOrder.[products], employees, tables]')
+                        .updateAndFetchById(orderSaved.id, orderSaved);
                     const tableChanged: any = await Tables.query(trx)
                         .where('id', orderSaved.tableId)
                         .first();
@@ -327,7 +329,7 @@ export class OrderRouter {
 
                     for (let i = 0; i < req.body.detailsOrder.length; i++) {
                         if (req.body.detailsOrder[i].status === 'Pedido') {
-                            req.body.detailsOrder[i].status = 'Preparando'
+                            req.body.detailsOrder[i].status = 'Preparando';
                             await DetailsOrder.query(trx).updateAndFetchById(req.body.detailsOrder[i].id, req.body.detailsOrder[i]);
                         }
                     }
@@ -348,7 +350,7 @@ export class OrderRouter {
                     for (let i = 0; i < req.body.detailsOrder.length; i++) {
                         if (req.body.detailsOrder[i].status === 'Pedido' ||
                             req.body.detailsOrder[i].status === 'Preparando') {
-                            req.body.detailsOrder[i].status = 'Despachado'
+                            req.body.detailsOrder[i].status = 'Despachado';
                             await DetailsOrder.query(trx).updateAndFetchById(req.body.detailsOrder[i].id, req.body.detailsOrder[i]);
                         }
                     }
