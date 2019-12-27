@@ -28,7 +28,9 @@ export class DetailOrderRouter {
                         req.body.service = ((productReturn.percentageService * req.body.price)/100);
                         req.body.tax = ((productReturn.tax * req.body.price)/100);
                         req.body.status = 'Pedido';
-                        detailReturn = await DetailsOrder.query(trx).insertAndFetch(req.body);
+                        detailReturn = await DetailsOrder.query(trx)
+                            .eager('[products]')
+                            .insertAndFetch(req.body);
                         productReturn.quantity = Number(productReturn.quantity) - Number(req.body.quantity);
                         await Products.query(trx).updateAndFetchById(productReturn.id, productReturn);
                     }

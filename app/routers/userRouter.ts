@@ -101,7 +101,6 @@ export class UserRouter {
 
         //Metodo para registrar el empleado con su correspondiente usuario
         router.post('/register/employee', async function (req, res) {
-            console.log(req.body);
             await bcrypt.genSalt(saltRounds, function (err, salt) {
                 bcrypt.hash(req.body.users.password, salt, async function (err, hash) {
                     try {
@@ -126,7 +125,6 @@ export class UserRouter {
                     }
                 });
             });
-
         });
         return router;
     }

@@ -6,6 +6,8 @@ const {transaction} = require('objection');
 const moment = require('moment-timezone');
 const express = require('express');
 const router = express.Router();
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
 
 export class EmployeeRouter {
     static get() {
@@ -62,15 +64,25 @@ export class EmployeeRouter {
         });
         // Metodo para actualizar el empleado
         router.put('/update',  async function(req, res) {
-            try {
-                const trans = await transaction(Model.knex(), async (trx) => {
-                    const employeeUpdated: any = await Employees.query(trx).upsertGraphAndFetch(req.body);
-                    return (employeeUpdated);
+            await bcrypt.genSalt(saltRounds, function (err, salt) {
+                bcrypt.hash(req.body.password, salt, async function (err, hash) {
+                    try {
+                        const trans = await transaction(Model.knex(), async (trx) => {
+                            if (req.body.users.password !== req.body.password) {
+                                req.body.users.password = hash;
+                                await Users.query(trx).updateAndFetchById(req.body.users.id, req.body.users);
+                            }
+                            delete req.body.users;
+                            delete req.body.password;
+                            const employeeUpdated: any = await Employees.query(trx).updateAndFetchById(req.body.id, req.body);
+                            return (employeeUpdated);
+                        });
+                        res.status(200).send(trans);
+                    } catch (err) {
+                        res.status(403).send(err);
+                    }
                 });
-                res.status(200).send(trans);
-            } catch (err) {
-                res.status(403).send(err);
-            }
+            });
         });
         // Metodo para eliminación suave del empleado
         router.post('/delete', async function (req, res) {
