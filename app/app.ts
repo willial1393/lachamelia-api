@@ -9,6 +9,7 @@ import {OrderRouter} from "./routers/orderRouter";
 import {RolRouter} from "./routers/rolRouter";
 import {TypeTableRouter} from "./routers/typeTableRouter";
 import {TariffRouter} from "./routers/tariffRouter";
+const mailer = require('../mail');
 
 require('dotenv').config();
 const bodyParser = require('body-parser');
@@ -50,6 +51,17 @@ app.use('/employee', EmployeeRouter.get());
 app.use('/rol', RolRouter.get());
 app.use('/typeTable', TypeTableRouter.get());
 app.use('/tariff', TariffRouter.get());
+
+app.use('/email', (req, res) => {
+    let mailOptions = {
+        to: "crimarino@uniboyaca.edu.co", // list of receivers
+        subject: "Hello ✔", // Subject line
+        text: "Hello world?", // plain text body
+        html: "<b>Hello world?</b>" // html body
+    };
+    mailer.sendMail(mailOptions);
+});
+
 
 app.listen(process.env.PORT, function () {
     console.log('listen on http://localhost:' + process.env.PORT);
